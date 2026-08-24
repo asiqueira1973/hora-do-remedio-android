@@ -15,7 +15,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -23,8 +26,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.NotificationsOff
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,6 +37,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -42,7 +48,15 @@ import com.dablab.horadoremedio.designsystem.CorRemedio
 import com.dablab.horadoremedio.designsystem.LocalEscalaFonte
 import com.dablab.horadoremedio.designsystem.TokenTipografico
 import com.dablab.horadoremedio.designsystem.estiloTipografico
+import com.dablab.horadoremedio.exportacao.compartilharTexto
+import com.dablab.horadoremedio.exportacao.gerarTexto
 import com.dablab.horadoremedio.telas.common.iconeDaForma
+
+private fun rotuloSaudacao(saudacao: Saudacao): Int = when (saudacao) {
+    Saudacao.MANHA -> R.string.home_saudacao_manha
+    Saudacao.TARDE -> R.string.home_saudacao_tarde
+    Saudacao.NOITE -> R.string.home_saudacao_noite
+}
 
 private fun rotuloFrequencia(remedio: RemedioEntity): String? = when (remedio.frequencia) {
     "dias_semana" -> remedio.diasSemana // formatação amigável chega no épico 8.2/16.3
@@ -60,10 +74,43 @@ fun HomeScreen(
 ) {
     val grupos by viewModel.grupos.collectAsState()
     val escala = LocalEscalaFonte.current
+    val context = LocalContext.current
+    val temAtivos = !grupos.isNullOrEmpty()
 
     Scaffold(
         containerColor = Cores.neutroFundo,
         floatingActionButton = {},
+        topBar = {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .background(Cores.neutroFundo)
+                    .windowInsetsPadding(WindowInsets.statusBars)
+                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    stringResource(rotuloSaudacao(saudacaoPara())),
+                    style = estiloTipografico(TokenTipografico.DISPLAY, escala),
+                    color = Cores.neutroTexto,
+                )
+                IconButton(
+                    onClick = {
+                        compartilharTexto(context, gerarTexto(viewModel.remediosParaExportar()))
+                    },
+                    enabled = temAtivos,
+                ) {
+                    Icon(
+                        Icons.Filled.Share,
+                        contentDescription = stringResource(
+                            if (temAtivos) R.string.home_botao_compartilhar else R.string.home_botao_compartilhar_desabilitado
+                        ),
+                        tint = if (temAtivos) Cores.acao else Cores.neutroBorda,
+                    )
+                }
+            }
+        },
     ) { paddingInterno ->
         Box(Modifier.fillMaxSize().padding(paddingInterno)) {
             when {
@@ -74,7 +121,7 @@ fun HomeScreen(
                         modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 20.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
-                        item { Spacer(Modifier.height(20.dp)) }
+                        item { Spacer(Modifier.height(4.dp)) }
                         items(grupos!!) { grupo -> GrupoSecao(grupo, aoTocarRemedio, escala) }
                         item { Spacer(Modifier.height(96.dp)) }
                     }

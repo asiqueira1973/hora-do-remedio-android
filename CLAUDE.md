@@ -47,23 +47,38 @@ adb shell am start -n com.dablab.horadoremedio.debug/com.dablab.horadoremedio.Ma
   `Repositorio` (bootstrap na abertura), `Enums.kt` (Forma/Frequencia/Cor/EscalaFonte),
   `RemedioComHorarios` (`@Relation`, usado pela Home). **Feito (épico 8.0).**
 - `lembretes/` — `CalculoAgendamento.kt` (funções puras: `proximoDisparoMillis`,
-  `calcularCustoDeAgendamento` — testáveis em JVM puro, ainda sem teste escrito),
-  `AgendadorLembretes` (`AlarmManager.setExactAndAllowWhileIdle` por horário + espelho em
+  `calcularCustoDeAgendamento` — **com testes JVM**, ver `app/src/test/.../lembretes/`),
+  `AgendadorLembretes` (`AlarmManager.setExactAndAllowWhileIdle` por horário, com fallback pra
+  `set()` aproximado quando `SCHEDULE_EXACT_ALARM` não foi concedido, + espelho em
   `notificacoes_agendadas`), `NotificationHelper` (canal + notificação, texto exato da tabela 15.3
   do spec-ios.md), `LembreteReceiver` (dispara + se reagenda sozinho), `BootReceiver`
-  (`RECEIVE_BOOT_COMPLETED` — mecanismo crítico, ver "Pegadinhas"). **Motor pronto (épico 8.4), mas
-  sem UI de cadastro ainda não há como testar ponta a ponta** — falta verificar num device real
-  (o emulador não é confiável para `AlarmManager`/Doze).
-- `designsystem/` — `Cores.kt` (ColorScheme M3 fixo + `CorRemedio`, tradução 1:1 do redesenho iOS
-  de 2026-08-23), `Tipografia.kt` (tokens display/titulo/corpo/botao/apoio, mesmos valores do
-  `typography.ts` do iOS pós-redesenho), `Tema.kt` (`HoraDoRemedioTheme`). **Feito.**
-- `telas/home/` — `AgrupamentoHome.kt` (função pura de agrupamento por horário/faixa do dia,
-  11.7 do spec-ios.md — testável, ainda sem teste escrito), `HomeViewModel`, `HomeScreen`
-  (lista agrupada + estado vazio + CTA "+ Adicionar remédio"). **Feito e verificado no emulador**
-  (estado vazio). Falta verificar com remédios cadastrados de verdade — só é possível depois do 8.2.
+  (`RECEIVE_BOOT_COMPLETED` — mecanismo crítico, ver "Pegadinhas"). **Motor pronto e chamado de
+  verdade pelo cadastro/edição/arquivamento (épicos 8.2/8.3), mas o disparo real da notificação
+  ainda não foi observado** — falta verificar num device real (o emulador não é confiável para
+  `AlarmManager`/Doze).
+- `designsystem/` — `Cores.kt` (ColorScheme M3 fixo + `CorRemedio` + `CorRemedio.proxima` (rodízio
+  11.8), tradução 1:1 do redesenho iOS de 2026-08-23), `Tipografia.kt` (tokens display/titulo/
+  corpo/botao/apoio, mesmos valores do `typography.ts` do iOS pós-redesenho), `Tema.kt`
+  (`HoraDoRemedioTheme`). **Feito.**
+- `telas/common/IconesForma.kt` — ícone por forma farmacêutica, compartilhado entre Home/Cadastro.
+- `telas/home/` — `AgrupamentoHome.kt` (agrupamento por horário/faixa, 11.7 — **com testes JVM**),
+  `Saudacao.kt` (saudação por período, 11.6 — pura), `HomeViewModel` (Flow de Room + StateFlow
+  separada `Eagerly` pra exportação — ver "Pegadinhas"), `HomeScreen` (cabeçalho com saudação +
+  botão compartilhar, lista agrupada, estado vazio, CTA, faixa de arquivamento + Desfazer).
+  **Feito e verificado no emulador ponta a ponta.**
+- `telas/cadastro/` — `CadastroViewModel` (form state + validação só ao salvar + modo edição via
+  `remedioIdParaEditar`), `CadastroScreen` (8 blocos, TimePicker M3, seletor de dias da semana,
+  seletor de cor). **Feito e verificado no emulador** (criar e editar).
+- `telas/detalhe/` — `DetalheViewModel`/`DetalheScreen` — horários + status do aviso, Editar,
+  Parar de tomar com confirmação. **Feito e verificado no emulador.**
 - `telas/onboarding/OnboardingScreen.kt` — 2 telas, grava `onboarding_concluido_em`. **Feito e
   verificado no emulador.**
-- `telas/RootView.kt` — decide onboarding × Home pelas preferências, libera a splash.
+- `telas/RootView.kt` — `NavHost` (onboarding/home/cadastro-novo/cadastro-editar/detalhe), decide
+  onboarding × Home pelas preferências, libera a splash, guarda o estado do "X foi arquivado" +
+  Desfazer (hoisted aqui pra sobreviver à navegação de volta pra Home).
+- `exportacao/` — `ExportadorLista.kt` (`gerarTexto`, porte 1:1 de `exportadorLista.ts` do iOS,
+  **com teste de comparação literal** — 22.1.3), `Compartilhar.kt` (`Intent.ACTION_SEND`). **Feito
+  e verificado no emulador** (épico 8.5).
 - `App.kt`, `MainActivity.kt` — bootstrap do banco, splash screen, cria o canal de notificação.
 
 ## Pegadinhas que NÃO podem ser quebradas
@@ -90,15 +105,22 @@ adb shell am start -n com.dablab.horadoremedio.debug/com.dablab.horadoremedio.Ma
 4. **`AlarmManager` não sobrevive a reboot** (diferente do iOS, onde notificações locais
    persistem). Sem o `BootReceiver` reagendando tudo via `AgendadorLembretes.reconciliarTudo()`, os
    avisos somem silenciosamente depois que o idoso reinicia o aparelho. Ver spec.md §6.
-4. **Cota de 64 notificações do iOS (11.4) NÃO se aplica aqui** — decisão documentada em spec.md
+5. **Cota de 64 notificações do iOS (11.4) NÃO se aplica aqui** — decisão documentada em spec.md
    §6: todo remédio ativo com `lembrete_ativo=1` agenda todos os seus horários, sempre. Não portar
    esse corte para o Android sem reabrir a decisão com o Alexandre.
-5. **`intervalo_dias` existe no schema e na lógica de cálculo, mas não tem UI** — mesma decisão do
+6. **`intervalo_dias` existe no schema e na lógica de cálculo, mas não tem UI** — mesma decisão do
    iOS (spec.md §7). Não adicionar o bloco "A cada X dias" no cadastro sem confirmar com o
    Alexandre que isso mudou.
-6. **Textos em `strings.xml` são a tradução letra-por-letra de `textos.ts`**, com 3 adaptações
+7. **Textos em `strings.xml` são a tradução letra-por-letra de `textos.ts`**, com 3 adaptações
    deliberadas de plataforma (`iPhone`→`celular`, comentadas no topo do arquivo). Qualquer novo
    texto de interface entra em `strings.xml`, nunca hardcoded numa tela.
+8. **`StateFlow.stateIn` com `WhileSubscribed` só coleta o upstream enquanto alguém está
+   observando via Compose (`collectAsState`)**. `HomeViewModel.remediosParaExportar()` lê uma
+   StateFlow só por `.value`, nunca via `collectAsState` — com `WhileSubscribed` ela nunca seria
+   coletada de verdade e `.value` ficava travado no valor inicial (`emptyList()`), fazendo a share
+   sheet abrir sem nenhum remédio mesmo com a Home cheia (bug real, visto no emulador). Precisa de
+   `SharingStarted.Eagerly` nesse caso específico — qualquer StateFlow acessada só por `.value` fora
+   de composição tem que usar `Eagerly`, não `WhileSubscribed`.
 
 ## Convenções
 
@@ -138,22 +160,26 @@ de ferramenta em sequência, várias vezes chegou depois dos 5s da faixa — nã
 de vez alongando o timer para 30s só para teste, confirmando que `reativar()` + Flow reativo
 funcionam certinho, e revertido para os 5s do spec antes do commit).
 
+**Épico 8.5 (Exportação) feito e verificado no emulador**: `gerarTexto` com teste de comparação
+literal (22.1.3, `ExportadorListaTest`), botão de compartilhar no cabeçalho da Home (desabilitado
+com lista vazia), share sheet nativa testada — texto e agrupamento saem certos. 16 testes JVM
+passando no total (`gerarTexto`, `agruparParaHome`, `proximoDisparoMillis`,
+`calcularCustoDeAgendamento`).
+
 **Falta (nesta ordem, spec.md §8):**
 1. Tela de pedir `SCHEDULE_EXACT_ALARM`/`POST_NOTIFICATIONS` (spec-ios.md 8.4) e validar o disparo
    da notificação de verdade em device real (não emulador).
 2. Confirmação própria ao mudar frequência para "quando_precisar" durante a EDIÇÃO (spec-ios.md
    8.3, "Regras de edição" — não é critério de aceite obrigatório, mas está no spec).
 3. Teste em escala de fonte `gigante` (nenhum rótulo pode cortar) — ainda não verificado.
-4. **Épico 8.5 — Exportação** (`gerarTexto` portado + `Intent.ACTION_SEND`).
-5. **Épico 8.6 — Ajustes** (tamanho de letra, som, arquivados — "Remédios que parei" é a única
+4. **Épico 8.6 — Ajustes** (tamanho de letra, som, arquivados — "Remédios que parei" é a única
    forma de ver/reativar um remédio arquivado depois que a faixa de 5s some sem o Desfazer, então
    este épico importa cedo), sobre, apagar tudo.
-6. Testes: JVM puro para `agruparParaHome`, `proximoDisparoMillis`, `calcularCustoDeAgendamento`
-   (funções já são puras e testáveis, só falta escrever os testes); instrumentados para Room.
-7. Ícone de notificação próprio (hoje usa um ícone de sistema placeholder em `NotificationHelper`
+5. Testes instrumentados para Room (constraints/triggers via SQL bruto — nenhum ainda).
+6. Ícone de notificação próprio (hoje usa um ícone de sistema placeholder em `NotificationHelper`
    — falta um ícone monocromático adequado para a barra de status).
-8. `DOCUMENTACAO-TECNICA.md` e `README.md` (entregáveis de fim, só depois do app estar navegável).
-9. Play Console (assinatura release, ficha da loja, produto/testador) — fica pro "meio", quando o
+7. `DOCUMENTACAO-TECNICA.md` e `README.md` (entregáveis de fim, só depois do app estar navegável).
+8. Play Console (assinatura release, ficha da loja, produto/testador) — fica pro "meio", quando o
    app estiver navegável (mesma sequência usada no I See Life Android).
 
 **Pendências para o Alexandre decidir** (não são técnicas — feedback_decisoes_tecnicas):

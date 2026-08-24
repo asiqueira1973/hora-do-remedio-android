@@ -80,7 +80,14 @@ adb shell am start -n com.dablab.horadoremedio.debug/com.dablab.horadoremedio.Ma
    runtime compara valor de default coluna a coluna, e como as entidades não declaram
    `defaultValue` em `@ColumnInfo`, um `DEFAULT` no SQL bruto quebraria essa validação na abertura
    seguinte do banco. Os defaults ficam só no lado Kotlin (valor default do construtor da entidade).
-3. **`AlarmManager` não sobrevive a reboot** (diferente do iOS, onde notificações locais
+3. **`SCHEDULE_EXACT_ALARM` é uma permissão "especial" (Android 12+)** — declarar no manifesto NÃO
+   basta; sem o usuário conceder em Ajustes, `AlarmManager.setExactAndAllowWhileIdle` derruba o app
+   com `SecurityException` (já crashou nesta sessão, ao salvar o 1º remédio). `AgendadorLembretes.
+   podeAgendarExato()` e o mesmo check em `LembreteReceiver` evitam o crash caindo para `set()`
+   (aproximado) quando a permissão não está concedida — mas a TELA de pedir a permissão
+   (spec-ios.md 8.4) ainda não existe; sem ela, todo alarme desta v1 é aproximado, não exato, o que
+   é uma degradação silenciosa que precisa virar UI antes do 8.4 ser considerado pronto.
+4. **`AlarmManager` não sobrevive a reboot** (diferente do iOS, onde notificações locais
    persistem). Sem o `BootReceiver` reagendando tudo via `AgendadorLembretes.reconciliarTudo()`, os
    avisos somem silenciosamente depois que o idoso reinicia o aparelho. Ver spec.md §6.
 4. **Cota de 64 notificações do iOS (11.4) NÃO se aplica aqui** — decisão documentada em spec.md
@@ -106,29 +113,32 @@ adb shell am start -n com.dablab.horadoremedio.debug/com.dablab.horadoremedio.Ma
 
 ## Estado atual (2026-08-24, sessão autônoma)
 
-**Feito e verificado no emulador:** épico **8.0** completo (Gradle, Room com constraints/triggers
-recriados via SQL bruto, ícone adaptativo, tema M3, splash) e épico **8.1** parcial (Home com
-agrupamento real, `Flow` reativo, estado vazio) + épico **8.7** (onboarding, 2 telas). Fluxo
-onboarding → Home vazio testado ponta a ponta no emulador Pixel_10, sem crash, com o texto e as
-cores certas (screenshots tirados durante a sessão).
+**Feito e verificado no emulador (Pixel_10), fluxo ponta a ponta sem crash:** onboarding (2 telas)
+→ Home vazia → cadastro (todos os 8 blocos do spec, menos o 4b cortado) → salvar → Home mostra os
+remédios agrupados por horário/faixa do dia, ordenados, com rodízio de cor certo (coral → azul no
+2º remédio criado). Épicos **8.0** (fundação) e **8.7** (onboarding) completos; **8.1** (Home) e
+**8.2** (Cadastro) funcionando de ponta a ponta, mas sem edição de forma completa ainda faltam
+alguns critérios de aceite finos (ver abaixo). Dois crashes reais encontrados e corrigidos durante
+a verificação no emulador — ver "Pegadinhas" #1 (trigger recursivo) e #3 (`SCHEDULE_EXACT_ALARM`).
 
-**Motor de lembretes (8.4) escrito mas não testado ponta a ponta** — `AgendadorLembretes`,
-`LembreteReceiver`, `BootReceiver`, `NotificationHelper` compilam e o canal de notificação é criado
-no `App.onCreate`, mas sem tela de cadastro não há como agendar um lembrete de verdade ainda.
-Precisa validar em **device real** (não emulador) quando existir UI para cadastrar remédio.
+**Motor de lembretes (8.4)** — `AgendadorLembretes.agendarDoRemedio` já é chamado de verdade pelo
+`CadastroViewModel.salvar`; o alarme é agendado (aproximado, já que a permissão de alarme exato
+ainda não tem tela de pedido — ver "Pegadinhas" #3) mas **o disparo em si (a notificação
+aparecendo na hora certa) ainda não foi observado** — só a chamada ao `AlarmManager` sem exceção.
+Precisa validar disparo real em device (o emulador não é confiável para isso).
 
 **Falta (nesta ordem, spec.md §8):**
-1. **Épico 8.2 — Cadastro**: formulário de 8 blocos, `TimePicker` M3, validação só ao salvar,
-   ligação com `AgendadorLembretes.agendarDoRemedio`. Maior peça que falta — sem ela o app não tem
-   como ter dado de verdade.
-2. **Épico 8.3 — Detalhe, edição, arquivamento** (3 rotas).
-3. Ligar 8.4 de ponta a ponta (cadastro → agenda → dispara → notificação aparece) e validar em
-   device real (fluxo de permissão `POST_NOTIFICATIONS`/`SCHEDULE_EXACT_ALARM` também só valida em
-   device).
+1. Fechar as pontas do 8.2: horário duplicado/máximo de 6 (lógica já existe em
+   `CadastroViewModel.adicionarHorario`, mas a mensagem "repetido" na tela ainda não usa a string
+   certa — só mostra a chave crua), teste em escala `gigante`, e revalidar bloco "Alguns dias da
+   semana"/"Quando precisar" (implementados, não testados no emulador ainda).
+2. **Épico 8.3 — Detalhe, edição, arquivamento** (3 rotas) — hoje tocar um card na Home não faz
+   nada (`aoTocarRemedio` é um no-op em `RootView`).
+3. Tela de pedir `SCHEDULE_EXACT_ALARM`/`POST_NOTIFICATIONS` (spec-ios.md 8.4) e validar o disparo
+   da notificação de verdade em device real.
 4. **Épico 8.5 — Exportação** (`gerarTexto` portado + `Intent.ACTION_SEND`).
 5. **Épico 8.6 — Ajustes** (tamanho de letra, som, arquivados, sobre, apagar tudo).
-6. Navegação real (Navigation Compose) ligando todas as telas — hoje só existe Home↔Onboarding.
-7. Testes: JVM puro para `agruparParaHome`, `proximoDisparoMillis`, `calcularCustoDeAgendamento`
+6. Testes: JVM puro para `agruparParaHome`, `proximoDisparoMillis`, `calcularCustoDeAgendamento`
    (funções já são puras e testáveis, só falta escrever os testes); instrumentados para Room.
 8. Ícone de notificação próprio (hoje usa um ícone de sistema placeholder em `NotificationHelper`
    — falta um ícone monocromático adequado para a barra de status).

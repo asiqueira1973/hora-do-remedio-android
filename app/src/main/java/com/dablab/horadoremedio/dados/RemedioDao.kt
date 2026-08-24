@@ -29,6 +29,10 @@ interface RemedioDao {
     @Query("SELECT * FROM remedios WHERE id = :id")
     suspend fun buscar(id: Long): RemedioEntity?
 
+    // Rodízio de cor (spec-ios.md 11.8): próxima cor após a do último remédio criado, incluindo arquivados.
+    @Query("SELECT cor FROM remedios ORDER BY id DESC LIMIT 1")
+    suspend fun buscarUltimaCorCriada(): String?
+
     @Insert
     suspend fun inserir(remedio: RemedioEntity): Long
 

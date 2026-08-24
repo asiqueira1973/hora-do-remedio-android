@@ -10,6 +10,7 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -51,7 +52,14 @@ class LembreteReceiver : BroadcastReceiver() {
                     },
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
                 )
-                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, proximo, pendingIntent)
+                // Mesma degradação de AgendadorLembretes.podeAgendarExato: sem SCHEDULE_EXACT_ALARM
+                // concedido, cai para set() em vez de crashar com SecurityException.
+                val podeExato = Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarmManager.canScheduleExactAlarms()
+                if (podeExato) {
+                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, proximo, pendingIntent)
+                } else {
+                    alarmManager.set(AlarmManager.RTC_WAKEUP, proximo, pendingIntent)
+                }
                 // O espelho em notificacoes_agendadas fica com o disparo_em antigo até a próxima
                 // reconciliação (abertura do app) — tabela derivada, reconstruível (spec-ios.md 7.4).
             } finally {

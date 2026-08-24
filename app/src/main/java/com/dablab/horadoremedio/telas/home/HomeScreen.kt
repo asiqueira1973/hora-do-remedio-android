@@ -4,6 +4,7 @@
 package com.dablab.horadoremedio.telas.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,15 +21,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Air
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.LocalDrink
-import androidx.compose.material.icons.filled.MedicalServices
-import androidx.compose.material.icons.filled.Medication
 import androidx.compose.material.icons.filled.NotificationsOff
-import androidx.compose.material.icons.filled.Opacity
-import androidx.compose.material.icons.filled.Sanitizer
-import androidx.compose.material.icons.filled.Vaccines
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -38,7 +32,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -49,16 +42,7 @@ import com.dablab.horadoremedio.designsystem.CorRemedio
 import com.dablab.horadoremedio.designsystem.LocalEscalaFonte
 import com.dablab.horadoremedio.designsystem.TokenTipografico
 import com.dablab.horadoremedio.designsystem.estiloTipografico
-
-private fun iconeDaForma(forma: String): ImageVector = when (forma) {
-    "gotas" -> Icons.Filled.Opacity
-    "xarope" -> Icons.Filled.LocalDrink
-    "injecao" -> Icons.Filled.Vaccines
-    "pomada" -> Icons.Filled.Sanitizer
-    "spray" -> Icons.Filled.Air
-    "outro" -> Icons.Filled.MedicalServices
-    else -> Icons.Filled.Medication // comprimido, capsula
-}
+import com.dablab.horadoremedio.telas.common.iconeDaForma
 
 private fun rotuloFrequencia(remedio: RemedioEntity): String? = when (remedio.frequencia) {
     "dias_semana" -> remedio.diasSemana // formatação amigável chega no épico 8.2/16.3
@@ -142,6 +126,7 @@ private fun CardRemedio(
         modifier = Modifier
             .fillMaxWidth()
             .background(Cores.neutroSuperficie, RoundedCornerShape(14.dp))
+            .clickable { aoTocarRemedio(remedio.id) }
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

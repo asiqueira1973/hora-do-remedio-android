@@ -33,6 +33,14 @@ enum class CorRemedio(val fundo: Color, val texto: Color, val detalhe: Color) {
 
     companion object {
         fun deValor(valor: String): CorRemedio = valueOf(valor.uppercase())
+
+        /** Rodízio na ordem da paleta (spec-ios.md 11.8): próxima cor após a última criada. */
+        fun proxima(ultimaCor: String?): CorRemedio {
+            if (ultimaCor == null) return CORAL
+            val ordem = entries
+            val indiceAtual = ordem.indexOf(deValor(ultimaCor))
+            return ordem[(indiceAtual + 1) % ordem.size]
+        }
     }
 }
 

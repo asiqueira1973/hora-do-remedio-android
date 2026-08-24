@@ -3,6 +3,7 @@
 
 package com.dablab.horadoremedio.dados
 
+import androidx.room.withTransaction
 import java.time.Instant
 
 class Repositorio(private val database: AppDatabase) {
@@ -16,4 +17,19 @@ class Repositorio(private val database: AppDatabase) {
             PreferenciasEntity(atualizadoEm = Instant.now().toString())
         )
     }
+
+    /** Cria remédio + horários numa transação só (spec-ios.md 13-A.1). Devolve o id do remédio. */
+    suspend fun criarRemedio(remedio: RemedioEntity, horariosHhMm: List<String>): Long =
+        database.withTransaction {
+            val id = remedios.inserir(remedio)
+            val agora = Instant.now().toString()
+            if (horariosHhMm.isNotEmpty()) {
+                horarios.inserirTodos(
+                    horariosHhMm.mapIndexed { indice, hhmm ->
+                        HorarioEntity(remedioId = id, horaMinuto = hhmm, ordem = indice, criadoEm = agora)
+                    }
+                )
+            }
+            id
+        }
 }

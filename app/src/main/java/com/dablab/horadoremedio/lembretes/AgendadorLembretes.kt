@@ -9,6 +9,7 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import com.dablab.horadoremedio.dados.HorarioEntity
 import com.dablab.horadoremedio.dados.RemedioEntity
 import com.dablab.horadoremedio.dados.Repositorio
@@ -50,7 +51,7 @@ class AgendadorLembretes(
             intervaloDias = remedio.intervaloDias,
         )
         val pendingIntent = pendingIntentDoHorario(remedio, horario)
-        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, disparoEm, pendingIntent)
+        agendarExatoOuAproximado(disparoEm, pendingIntent)
 
         repositorio.notificacoes.inserir(
             com.dablab.horadoremedio.dados.NotificacaoAgendadaEntity(
@@ -84,6 +85,24 @@ class AgendadorLembretes(
         val remedios = repositorio.remedios.listarAtivos().first()
         for (remedio in remedios) {
             agendarDoRemedio(remedio)
+        }
+    }
+
+    /**
+     * `SCHEDULE_EXACT_ALARM` (Android 12+) é uma permissão "especial": tê-la no manifesto não
+     * basta, o usuário precisa concedê-la em Ajustes (ou o app precisa checar antes de chamar
+     * `setExactAndAllowWhileIdle`, senão o sistema derruba o app com `SecurityException` — já
+     * visto no emulador). Sem a permissão, cai para `set()` (aproximado) em vez de crashar; a
+     * tela própria de pedir a permissão (spec-ios.md 8.4) é um próximo épico.
+     */
+    fun podeAgendarExato(): Boolean =
+        Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarmManager.canScheduleExactAlarms()
+
+    private fun agendarExatoOuAproximado(disparoEm: Long, pendingIntent: PendingIntent) {
+        if (podeAgendarExato()) {
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, disparoEm, pendingIntent)
+        } else {
+            alarmManager.set(AlarmManager.RTC_WAKEUP, disparoEm, pendingIntent)
         }
     }
 

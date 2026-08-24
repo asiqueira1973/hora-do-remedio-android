@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
@@ -56,7 +57,7 @@ fun OnboardingScreen(aoConcluir: () -> Unit) {
                     textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(40.dp))
-                Button(onClick = { tela = 2 }, modifier = Modifier.fillMaxWidth().height(64.dp)) {
+                Button(onClick = { tela = 2 }, modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp)) {
                     Text(stringResource(R.string.onboarding_tela1_botao), style = estiloTipografico(TokenTipografico.BOTAO, escala))
                 }
             } else {
@@ -74,7 +75,7 @@ fun OnboardingScreen(aoConcluir: () -> Unit) {
                     textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(40.dp))
-                Button(onClick = aoConcluir, modifier = Modifier.fillMaxWidth().height(64.dp)) {
+                Button(onClick = aoConcluir, modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp)) {
                     Text(stringResource(R.string.onboarding_tela2_botao), style = estiloTipografico(TokenTipografico.BOTAO, escala))
                 }
             }

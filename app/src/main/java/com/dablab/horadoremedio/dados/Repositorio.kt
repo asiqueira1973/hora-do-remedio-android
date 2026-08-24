@@ -48,4 +48,12 @@ class Repositorio(private val database: AppDatabase) {
                 )
             }
         }
+
+    /** "Apagar todos os meus dados" (8.6). `remedios.apagarTudo()` sozinho já cascade-apaga
+     *  horarios e notificacoes_agendadas (ON DELETE CASCADE, PRAGMA foreign_keys=ON). Volta a
+     *  preferencias para os defaults do seed, sem onboarding concluído. */
+    suspend fun apagarTudo() = database.withTransaction {
+        remedios.apagarTudo()
+        preferencias.resetarParaDefaults()
+    }
 }

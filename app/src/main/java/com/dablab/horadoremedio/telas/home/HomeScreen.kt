@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.WindowInsets
@@ -26,6 +27,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.NotificationsOff
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -69,6 +71,7 @@ fun HomeScreen(
     viewModel: HomeViewModel,
     aoTocarAdicionar: () -> Unit,
     aoTocarRemedio: (Long) -> Unit,
+    aoAbrirAjustes: () -> Unit = {},
     nomeRecemArquivado: String? = null,
     aoDesfazerArquivamento: () -> Unit = {},
 ) {
@@ -95,19 +98,28 @@ fun HomeScreen(
                     style = estiloTipografico(TokenTipografico.DISPLAY, escala),
                     color = Cores.neutroTexto,
                 )
-                IconButton(
-                    onClick = {
-                        compartilharTexto(context, gerarTexto(viewModel.remediosParaExportar()))
-                    },
-                    enabled = temAtivos,
-                ) {
-                    Icon(
-                        Icons.Filled.Share,
-                        contentDescription = stringResource(
-                            if (temAtivos) R.string.home_botao_compartilhar else R.string.home_botao_compartilhar_desabilitado
-                        ),
-                        tint = if (temAtivos) Cores.acao else Cores.neutroBorda,
-                    )
+                Row {
+                    IconButton(
+                        onClick = {
+                            compartilharTexto(context, gerarTexto(viewModel.remediosParaExportar()))
+                        },
+                        enabled = temAtivos,
+                    ) {
+                        Icon(
+                            Icons.Filled.Share,
+                            contentDescription = stringResource(
+                                if (temAtivos) R.string.home_botao_compartilhar else R.string.home_botao_compartilhar_desabilitado
+                            ),
+                            tint = if (temAtivos) Cores.acao else Cores.neutroBorda,
+                        )
+                    }
+                    IconButton(onClick = aoAbrirAjustes) {
+                        Icon(
+                            Icons.Filled.Settings,
+                            contentDescription = stringResource(R.string.ajustes_titulo),
+                            tint = Cores.neutroTexto,
+                        )
+                    }
                 }
             }
         },
@@ -165,7 +177,7 @@ fun HomeScreen(
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
                     .padding(20.dp)
-                    .height(64.dp),
+                    .heightIn(min = 64.dp),
                 shape = RoundedCornerShape(14.dp),
             ) {
                 Text(

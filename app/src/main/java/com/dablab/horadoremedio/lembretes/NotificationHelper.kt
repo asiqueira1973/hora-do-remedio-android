@@ -1,6 +1,10 @@
 // NotificationHelper.kt — canal e exibição da notificação (spec.md §5, tradução de
 // expo-notifications). Título/corpo exatos da tabela 15.3 do spec-ios.md: uma notificação por
 // remédio, nunca agrupada (2.4 — a pessoa precisa saber O QUÊ tomar sem abrir o app).
+//
+// Dois canais (com som / silencioso) em vez de um: o Android não deixa mudar o som de um
+// NotificationChannel depois de criado (diferente do iOS, onde o som é por notificação — 8.6).
+// `mostrar` escolhe o canal pelo valor ATUAL de preferencias.som_lembrete a cada disparo.
 
 package com.dablab.horadoremedio.lembretes
 
@@ -13,21 +17,27 @@ import androidx.core.app.NotificationCompat
 import com.dablab.horadoremedio.MainActivity
 import com.dablab.horadoremedio.R
 
-private const val CANAL_ID = "lembretes_remedio"
+private const val CANAL_COM_SOM = "lembretes_remedio_com_som"
+private const val CANAL_SILENCIOSO = "lembretes_remedio_silencioso"
 
 object NotificationHelper {
     fun criarCanal(context: Context) {
         val gerenciador = context.getSystemService(NotificationManager::class.java)
-        val canal = NotificationChannel(
-            CANAL_ID,
-            context.getString(R.string.notificacao_titulo),
-            NotificationManager.IMPORTANCE_HIGH,
+        val titulo = context.getString(R.string.notificacao_titulo)
+
+        gerenciador.createNotificationChannel(
+            NotificationChannel(CANAL_COM_SOM, titulo, NotificationManager.IMPORTANCE_HIGH)
         )
-        gerenciador.createNotificationChannel(canal)
+        gerenciador.createNotificationChannel(
+            NotificationChannel(CANAL_SILENCIOSO, titulo, NotificationManager.IMPORTANCE_HIGH).apply {
+                setSound(null, null)
+            }
+        )
     }
 
-    fun mostrar(context: Context, remedioId: Long, nome: String, dose: String?) {
+    fun mostrar(context: Context, remedioId: Long, nome: String, dose: String?, comSom: Boolean) {
         val corpo = if (dose.isNullOrBlank()) nome else "$nome — $dose"
+        val canalId = if (comSom) CANAL_COM_SOM else CANAL_SILENCIOSO
 
         val abrirApp = PendingIntent.getActivity(
             context,
@@ -38,7 +48,7 @@ object NotificationHelper {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
-        val notificacao = NotificationCompat.Builder(context, CANAL_ID)
+        val notificacao = NotificationCompat.Builder(context, canalId)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle(context.getString(R.string.notificacao_titulo))
             .setContentText(corpo)

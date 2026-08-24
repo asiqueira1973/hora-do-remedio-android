@@ -79,7 +79,12 @@ adb shell am start -n com.dablab.horadoremedio.debug/com.dablab.horadoremedio.Ma
 - `exportacao/` — `ExportadorLista.kt` (`gerarTexto`, porte 1:1 de `exportadorLista.ts` do iOS,
   **com teste de comparação literal** — 22.1.3), `Compartilhar.kt` (`Intent.ACTION_SEND`). **Feito
   e verificado no emulador** (épico 8.5).
-- `App.kt`, `MainActivity.kt` — bootstrap do banco, splash screen, cria o canal de notificação.
+- `telas/ajustes/` — `AjustesViewModel`/`AjustesScreen` — tamanho de letra (aplica na hora, todo o
+  app), som do aviso (reagenda tudo), atalhos p/ arquivados/compartilhar, "Sobre o app" com link de
+  privacidade, apagar tudo com confirmação dupla. **Feito e verificado no emulador.**
+- `telas/arquivados/` — `ArquivadosViewModel`/`ArquivadosScreen` — lista arquivados, "Voltar a
+  tomar" limpa `arquivado_em` e reagenda. **Feito e verificado no emulador.**
+- `App.kt`, `MainActivity.kt` — bootstrap do banco, splash screen, cria os canais de notificação.
 
 ## Pegadinhas que NÃO podem ser quebradas
 
@@ -121,6 +126,14 @@ adb shell am start -n com.dablab.horadoremedio.debug/com.dablab.horadoremedio.Ma
    sheet abrir sem nenhum remédio mesmo com a Home cheia (bug real, visto no emulador). Precisa de
    `SharingStarted.Eagerly` nesse caso específico — qualquer StateFlow acessada só por `.value` fora
    de composição tem que usar `Eagerly`, não `WhileSubscribed`.
+9. **`NotificationChannel` não deixa trocar o som depois de criado** (diferente do iOS, onde o som
+   é por notificação). `NotificationHelper` cria DOIS canais (com som / silencioso) e escolhe pelo
+   valor ATUAL de `preferencias.som_lembrete` a cada disparo — nunca crie um 3º canal achando que
+   vai "consertar" isso; o padrão certo é sempre 2 canais fixos + escolha em runtime.
+10. **Botão com `.height(N.dp)` fixo corta o texto em 2 linhas na escala `gigante`** (visto ao vivo
+    no emulador: "Apagar todos os meus dados" cortado, acceptance criterion violado). Todo botão que
+    pode ter texto de 2+ palavras usa `.heightIn(min = N.dp)`, nunca `.height(N.dp)` fixo — deixa o
+    botão crescer se o texto quebrar linha em vez de cortar.
 
 ## Convenções
 
@@ -135,52 +148,45 @@ adb shell am start -n com.dablab.horadoremedio.debug/com.dablab.horadoremedio.Ma
 
 ## Estado atual (2026-08-24, sessão autônoma)
 
-**Feito e verificado no emulador (Pixel_10), fluxo ponta a ponta sem crash:** onboarding (2 telas)
-→ Home vazia → cadastro (todos os 8 blocos do spec, menos o 4b cortado) → salvar → Home mostra os
-remédios agrupados por horário/faixa do dia, ordenados, com rodízio de cor certo (coral → azul no
-2º remédio criado). Épicos **8.0** (fundação), **8.1** (Home), **8.2** (Cadastro), **8.3**
-(Detalhe/edição/arquivamento) e **8.7** (onboarding) completos e verificados no emulador — ver
-"Verificado nesta sessão" abaixo para o que exatamente foi clicado e confirmado.
+**Todos os épicos 8.0→8.7 implementados e verificados no emulador (Pixel_10), fluxo ponta a
+ponta sem crash:** onboarding (2 telas) → Home vazia → cadastro (8 blocos, menos o 4b cortado) →
+salvar → Home mostra os remédios agrupados por horário/faixa, com rodízio de cor → tocar no card
+abre o Detalhe → Editar reabre o formulário preenchido → "Parar de tomar" com confirmação e nome
+interpolado → arquiva → faixa "X foi arquivado" + **Desfazer confirmado funcionando** → Ajustes
+(engrenagem no cabeçalho) → tamanho de letra Grande/Gigante aplica em TODO o app na hora (inclusive
+o próprio texto do botão "Apagar todos os meus dados", que quebra em 2 linhas sem cortar) → Som do
+aviso → Remédios que parei → Voltar a tomar traz o remédio de volta com horário/cor originais →
+Compartilhar minha lista (Home e Ajustes) → Apagar todos os meus dados com dupla confirmação exata
+do spec → volta ao onboarding com o banco limpo. 20 testes JVM passando (`gerarTexto` com
+comparação literal 22.1.3, `agruparParaHome`, `proximoDisparoMillis`, `calcularCustoDeAgendamento`).
 
-**Motor de lembretes (8.4)** — `AgendadorLembretes.agendarDoRemedio` já é chamado de verdade pelo
-`CadastroViewModel.salvar` (criar e editar) e pelo `DetalheViewModel`/undo (arquivar/reativar); o
-alarme é agendado (aproximado, já que a permissão de alarme exato ainda não tem tela de pedido —
-ver "Pegadinhas" #3) mas **o disparo em si (a notificação aparecendo na hora certa) ainda não foi
-observado** — só a chamada ao `AlarmManager` sem exceção. Precisa validar disparo real em device
-(o emulador não é confiável para isso).
+**Motor de lembretes (8.4)** — `AgendadorLembretes.agendarDoRemedio` é chamado de verdade pelo
+cadastro/edição/arquivamento/"voltar a tomar", e `mudarSom` (Ajustes) reagenda tudo trocando de
+canal (com som/silencioso — ver "Pegadinhas" #9). O alarme é agendado (aproximado, já que a
+permissão de alarme exato ainda não tem tela de pedido — "Pegadinhas" #3) mas **o disparo em si (a
+notificação aparecendo na hora certa) ainda não foi observado** — só a chamada ao `AlarmManager`
+sem exceção. Precisa validar disparo real em device (o emulador não é confiável para isso).
 
-**Verificado nesta sessão, ponta a ponta, no emulador Pixel_10:** onboarding → Home vazia →
-cadastro (nome, dose, forma com rótulos acentuados certos, frequência, horário via TimePicker,
-lembrete, observação, cor) → salvar → Home mostra o card certo → tocar no card abre o Detalhe com
-horário e status do aviso → Editar reabre o formulário preenchido com "Salvar alterações" →
-"Parar de tomar" pede confirmação com o nome interpolado certo → confirma → arquiva, some da Home,
-mostra a faixa "X foi arquivado" + Desfazer → **Desfazer confirmado funcionando** (custou várias
-tentativas: os primeiros testes "falharam" porque o toque no emulador, mediado por várias chamadas
-de ferramenta em sequência, várias vezes chegou depois dos 5s da faixa — não é bug de app; verificado
-de vez alongando o timer para 30s só para teste, confirmando que `reativar()` + Flow reativo
-funcionam certinho, e revertido para os 5s do spec antes do commit).
+**Bugs reais encontrados e corrigidos nesta sessão, todos verificados no emulador**: trigger
+recursivo do SQLite (crash), `SCHEDULE_EXACT_ALARM` sem checagem em runtime (crash), rótulos de
+forma sem acento, mensagem de horário repetido mostrando a chave crua, `StateFlow.WhileSubscribed`
+nunca coletada travando a exportação em lista vazia, cabeçalho da Home sob a status bar, botão de
+"Apagar tudo" cortando texto em 2 linhas na escala gigante.
 
-**Épico 8.5 (Exportação) feito e verificado no emulador**: `gerarTexto` com teste de comparação
-literal (22.1.3, `ExportadorListaTest`), botão de compartilhar no cabeçalho da Home (desabilitado
-com lista vazia), share sheet nativa testada — texto e agrupamento saem certos. 16 testes JVM
-passando no total (`gerarTexto`, `agruparParaHome`, `proximoDisparoMillis`,
-`calcularCustoDeAgendamento`).
-
-**Falta (nesta ordem, spec.md §8):**
+**Falta (nesta ordem, spec.md §8 já não define mais ordem — os 8 épicos estão feitos):**
 1. Tela de pedir `SCHEDULE_EXACT_ALARM`/`POST_NOTIFICATIONS` (spec-ios.md 8.4) e validar o disparo
-   da notificação de verdade em device real (não emulador).
+   da notificação de verdade em device real (não emulador) — maior item pendente.
 2. Confirmação própria ao mudar frequência para "quando_precisar" durante a EDIÇÃO (spec-ios.md
    8.3, "Regras de edição" — não é critério de aceite obrigatório, mas está no spec).
-3. Teste em escala de fonte `gigante` (nenhum rótulo pode cortar) — ainda não verificado.
-4. **Épico 8.6 — Ajustes** (tamanho de letra, som, arquivados — "Remédios que parei" é a única
-   forma de ver/reativar um remédio arquivado depois que a faixa de 5s some sem o Desfazer, então
-   este épico importa cedo), sobre, apagar tudo.
-5. Testes instrumentados para Room (constraints/triggers via SQL bruto — nenhum ainda).
-6. Ícone de notificação próprio (hoje usa um ícone de sistema placeholder em `NotificationHelper`
+3. Testes instrumentados para Room (constraints/triggers via SQL bruto — nenhum ainda).
+4. Ícone de notificação próprio (hoje usa um ícone de sistema placeholder em `NotificationHelper`
    — falta um ícone monocromático adequado para a barra de status).
-7. `DOCUMENTACAO-TECNICA.md` e `README.md` (entregáveis de fim, só depois do app estar navegável).
-8. Play Console (assinatura release, ficha da loja, produto/testador) — fica pro "meio", quando o
-   app estiver navegável (mesma sequência usada no I See Life Android).
+5. Revisar se algum outro botão/rótulo do app ainda usa `.height()` fixo em vez de `.heightIn(min=)`
+   (ver "Pegadinhas" #10 — já corrigido nos botões principais, mas vale um grep final).
+6. `DOCUMENTACAO-TECNICA.md` e `README.md` (entregáveis de fim, agora que o app está navegável de
+   ponta a ponta).
+7. Play Console (assinatura release, ficha da loja, produto/testador) — fica pro "meio"; o app já
+   está navegável, então este é o próximo marco natural quando o Alexandre decidir seguir.
 
 **Pendências para o Alexandre decidir** (não são técnicas — feedback_decisoes_tecnicas):
 nenhuma ainda. Tudo que foi decidido até aqui era técnico e ficou registrado no spec.md/neste

@@ -1,7 +1,8 @@
 // LembreteReceiver.kt — dispara quando um alarme exato do AlarmManager chega (spec.md §5/§6):
 // mostra a notificação e, como o Android não tem repetição nativa por dia-da-semana, se
 // REAGENDA para a próxima ocorrência (o alarme carrega tudo que precisa nos extras — não depende
-// do banco estar acessível no instante exato do disparo).
+// do banco estar acessível no instante exato do disparo, exceto pela preferência de som — 8.6 —
+// que é lida fresca a cada disparo).
 
 package com.dablab.horadoremedio.lembretes
 
@@ -11,6 +12,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import com.dablab.horadoremedio.App
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -28,15 +30,17 @@ class LembreteReceiver : BroadcastReceiver() {
             intent.getIntExtra(EXTRA_INTERVALO_DIAS, 0)
         } else null
 
-        NotificationHelper.mostrar(context, remedioId, nome, dose)
-
-        if (frequencia == "quando_precisar" || horarioId < 0) return
-
-        // Reagenda a próxima ocorrência do MESMO horário — goAsync porque grava em
-        // notificacoes_agendadas (Room) e o receiver não pode bloquear a thread principal.
+        // goAsync: mostrar precisa ler preferencias.som_lembrete (Room) e o reagendamento grava
+        // em notificacoes_agendadas — o receiver não pode bloquear a thread principal pra isso.
         val pendingResult = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             try {
+                val repositorio = (context.applicationContext as App).repositorio
+                val comSom = repositorio.preferencias.buscar()?.somLembrete ?: true
+                NotificationHelper.mostrar(context, remedioId, nome, dose, comSom)
+
+                if (frequencia == "quando_precisar" || horarioId < 0) return@launch
+
                 val proximo = proximoDisparoMillis(
                     horaMinuto = horaMinuto,
                     frequencia = frequencia,

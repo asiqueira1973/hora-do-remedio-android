@@ -88,6 +88,12 @@ class AgendadorLembretes(
         }
     }
 
+    /** Cancela os alarmes de TODOS os remédios ativos — "Apagar todos os meus dados" (8.6). */
+    suspend fun cancelarTudo() {
+        val remedios = repositorio.remedios.listarAtivos().first()
+        for (remedio in remedios) cancelarDoRemedio(remedio.id)
+    }
+
     /**
      * `SCHEDULE_EXACT_ALARM` (Android 12+) é uma permissão "especial": tê-la no manifesto não
      * basta, o usuário precisa concedê-la em Ajustes (ou o app precisa checar antes de chamar

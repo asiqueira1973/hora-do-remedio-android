@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -112,7 +113,7 @@ fun DetalheScreen(
 
             Button(
                 onClick = { aoEditar(remedio.id) },
-                modifier = Modifier.fillMaxWidth().height(60.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(min = 60.dp),
                 shape = RoundedCornerShape(14.dp),
             ) {
                 Text(stringResource(R.string.detalhe_editar), style = estiloTipografico(TokenTipografico.BOTAO, escala))
@@ -120,7 +121,7 @@ fun DetalheScreen(
             Spacer(Modifier.height(12.dp))
             Button(
                 onClick = { confirmando = true },
-                modifier = Modifier.fillMaxWidth().height(60.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(min = 60.dp),
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Cores.neutroSuperficie, contentColor = Cores.perigo),
             ) {

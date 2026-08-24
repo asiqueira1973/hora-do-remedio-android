@@ -27,4 +27,8 @@ interface PreferenciasDao {
 
     @Query("UPDATE preferencias SET onboarding_concluido_em = :dataHora WHERE id = 1")
     suspend fun concluirOnboarding(dataHora: String)
+
+    // "Apagar todos os meus dados" (8.6): volta aos defaults do seed, sem onboarding concluído.
+    @Query("UPDATE preferencias SET escala_fonte = 'grande', som_lembrete = 1, onboarding_concluido_em = NULL WHERE id = 1")
+    suspend fun resetarParaDefaults()
 }

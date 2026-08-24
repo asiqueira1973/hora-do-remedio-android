@@ -25,6 +25,10 @@ import com.dablab.horadoremedio.dados.EscalaFonte
 import com.dablab.horadoremedio.dados.Repositorio
 import com.dablab.horadoremedio.designsystem.HoraDoRemedioTheme
 import com.dablab.horadoremedio.lembretes.AgendadorLembretes
+import com.dablab.horadoremedio.telas.ajustes.AjustesScreen
+import com.dablab.horadoremedio.telas.ajustes.AjustesViewModel
+import com.dablab.horadoremedio.telas.arquivados.ArquivadosScreen
+import com.dablab.horadoremedio.telas.arquivados.ArquivadosViewModel
 import com.dablab.horadoremedio.telas.cadastro.CadastroScreen
 import com.dablab.horadoremedio.telas.cadastro.CadastroViewModel
 import com.dablab.horadoremedio.telas.detalhe.DetalheScreen
@@ -59,6 +63,24 @@ private class DetalheViewModelFactory(
     @Suppress("UNCHECKED_CAST")
     override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T =
         DetalheViewModel(repositorio, agendador, remedioId) as T
+}
+
+private class AjustesViewModelFactory(
+    private val repositorio: Repositorio,
+    private val agendador: AgendadorLembretes,
+) : ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T =
+        AjustesViewModel(repositorio, agendador) as T
+}
+
+private class ArquivadosViewModelFactory(
+    private val repositorio: Repositorio,
+    private val agendador: AgendadorLembretes,
+) : ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T =
+        ArquivadosViewModel(repositorio, agendador) as T
 }
 
 @Composable
@@ -110,6 +132,7 @@ fun RootView(repositorio: Repositorio, aoFicarPronto: () -> Unit) {
                     viewModel = homeViewModel,
                     aoTocarAdicionar = { navController.navigate("cadastro/novo") },
                     aoTocarRemedio = { id -> navController.navigate("detalhe/$id") },
+                    aoAbrirAjustes = { navController.navigate("ajustes") },
                     nomeRecemArquivado = arquivadoRecente?.second,
                     aoDesfazerArquivamento = {
                         val (id, _) = arquivadoRecente ?: return@HomeScreen
@@ -162,6 +185,23 @@ fun RootView(repositorio: Repositorio, aoFicarPronto: () -> Unit) {
                         navController.popBackStack("home", inclusive = false)
                     },
                 )
+            }
+            composable("ajustes") {
+                val ajustesViewModel: AjustesViewModel = viewModel(factory = AjustesViewModelFactory(repositorio, agendador))
+                AjustesScreen(
+                    viewModel = ajustesViewModel,
+                    aoVoltar = { navController.popBackStack() },
+                    aoAbrirArquivados = { navController.navigate("ajustes/arquivados") },
+                    aoApagarTudo = {
+                        navController.navigate("onboarding") {
+                            popUpTo(navController.graph.id) { inclusive = true }
+                        }
+                    },
+                )
+            }
+            composable("ajustes/arquivados") {
+                val arquivadosViewModel: ArquivadosViewModel = viewModel(factory = ArquivadosViewModelFactory(repositorio, agendador))
+                ArquivadosScreen(viewModel = arquivadosViewModel, aoVoltar = { navController.popBackStack() })
             }
         }
     }

@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -246,7 +247,7 @@ fun CadastroScreen(viewModel: CadastroViewModel, aoSalvar: (Long) -> Unit, aoCan
 
             Button(
                 onClick = { viewModel.salvar(aoConcluir = aoSalvar) },
-                modifier = Modifier.fillMaxWidth().padding(20.dp).height(64.dp),
+                modifier = Modifier.fillMaxWidth().padding(20.dp).heightIn(min = 64.dp),
                 enabled = !viewModel.salvando,
                 shape = RoundedCornerShape(14.dp),
             ) {

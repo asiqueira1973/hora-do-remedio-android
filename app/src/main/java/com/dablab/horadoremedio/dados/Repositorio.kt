@@ -32,4 +32,20 @@ class Repositorio(private val database: AppDatabase) {
             }
             id
         }
+
+    /** Atualiza um remédio e REESCREVE seus horários (spec-ios.md 8.3: nunca edita horário
+     *  existente — apaga e recria, para o reagendamento de notificações ser cancelar+recriar). */
+    suspend fun atualizarRemedioComHorarios(remedio: RemedioEntity, horariosHhMm: List<String>) =
+        database.withTransaction {
+            remedios.atualizar(remedio)
+            horarios.removerDoRemedio(remedio.id)
+            val agora = Instant.now().toString()
+            if (horariosHhMm.isNotEmpty()) {
+                horarios.inserirTodos(
+                    horariosHhMm.mapIndexed { indice, hhmm ->
+                        HorarioEntity(remedioId = remedio.id, horaMinuto = hhmm, ordem = indice, criadoEm = agora)
+                    }
+                )
+            }
+        }
 }

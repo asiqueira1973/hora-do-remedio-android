@@ -51,7 +51,13 @@ private fun rotuloFrequencia(remedio: RemedioEntity): String? = when (remedio.fr
 }
 
 @Composable
-fun HomeScreen(viewModel: HomeViewModel, aoTocarAdicionar: () -> Unit, aoTocarRemedio: (Long) -> Unit) {
+fun HomeScreen(
+    viewModel: HomeViewModel,
+    aoTocarAdicionar: () -> Unit,
+    aoTocarRemedio: (Long) -> Unit,
+    nomeRecemArquivado: String? = null,
+    aoDesfazerArquivamento: () -> Unit = {},
+) {
     val grupos by viewModel.grupos.collectAsState()
     val escala = LocalEscalaFonte.current
 
@@ -71,6 +77,37 @@ fun HomeScreen(viewModel: HomeViewModel, aoTocarAdicionar: () -> Unit, aoTocarRe
                         item { Spacer(Modifier.height(20.dp)) }
                         items(grupos!!) { grupo -> GrupoSecao(grupo, aoTocarRemedio, escala) }
                         item { Spacer(Modifier.height(96.dp)) }
+                    }
+                }
+            }
+
+            nomeRecemArquivado?.let { nome ->
+                Row(
+                    Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(start = 20.dp, end = 20.dp, bottom = 96.dp)
+                        .fillMaxWidth()
+                        .background(Cores.neutroTexto, RoundedCornerShape(14.dp))
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        stringResource(R.string.detalhe_arquivado_faixa, nome),
+                        style = estiloTipografico(TokenTipografico.CORPO, escala),
+                        color = androidx.compose.ui.graphics.Color.White,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false),
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    androidx.compose.material3.TextButton(onClick = aoDesfazerArquivamento) {
+                        Text(
+                            stringResource(R.string.detalhe_arquivado_desfazer),
+                            style = estiloTipografico(TokenTipografico.BOTAO, escala),
+                            color = Cores.acao,
+                            maxLines = 1,
+                        )
                     }
                 }
             }

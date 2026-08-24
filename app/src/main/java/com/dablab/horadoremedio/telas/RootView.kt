@@ -1,5 +1,7 @@
-// RootView.kt — roteamento raiz (épico 8.0/8.7/8.2): prepara o banco, decide onboarding × Home
-// pelas preferências, e navega para o cadastro (Navigation Compose — spec.md §5).
+// RootView.kt — roteamento raiz (épico 8.0/8.7/8.2/8.3): prepara o banco, decide onboarding ×
+// Home pelas preferências, e navega entre Home, cadastro, edição e detalhe (Navigation Compose —
+// spec.md §5). A faixa "X foi arquivado" + Desfazer (spec-ios.md 8.3) é hoisted aqui porque
+// precisa sobreviver à navegação de volta do detalhe para a Home.
 
 package com.dablab.horadoremedio.telas
 
@@ -14,18 +16,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.dablab.horadoremedio.dados.EscalaFonte
 import com.dablab.horadoremedio.dados.Repositorio
 import com.dablab.horadoremedio.designsystem.HoraDoRemedioTheme
 import com.dablab.horadoremedio.lembretes.AgendadorLembretes
 import com.dablab.horadoremedio.telas.cadastro.CadastroScreen
 import com.dablab.horadoremedio.telas.cadastro.CadastroViewModel
+import com.dablab.horadoremedio.telas.detalhe.DetalheScreen
+import com.dablab.horadoremedio.telas.detalhe.DetalheViewModel
 import com.dablab.horadoremedio.telas.home.HomeScreen
 import com.dablab.horadoremedio.telas.home.HomeViewModel
 import com.dablab.horadoremedio.telas.onboarding.OnboardingScreen
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 private class HomeViewModelFactory(private val repositorio: Repositorio) : ViewModelProvider.Factory {
@@ -37,10 +44,21 @@ private class HomeViewModelFactory(private val repositorio: Repositorio) : ViewM
 private class CadastroViewModelFactory(
     private val repositorio: Repositorio,
     private val agendador: AgendadorLembretes,
+    private val remedioIdParaEditar: Long? = null,
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T =
-        CadastroViewModel(repositorio, agendador) as T
+        CadastroViewModel(repositorio, agendador, remedioIdParaEditar) as T
+}
+
+private class DetalheViewModelFactory(
+    private val repositorio: Repositorio,
+    private val agendador: AgendadorLembretes,
+    private val remedioId: Long,
+) : ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T =
+        DetalheViewModel(repositorio, agendador, remedioId) as T
 }
 
 @Composable
@@ -64,6 +82,15 @@ fun RootView(repositorio: Repositorio, aoFicarPronto: () -> Unit) {
     val onboardingConcluido = preferencias!!.onboardingConcluidoEm != null
     val escopo = rememberCoroutineScope()
     val navController = rememberNavController()
+    val agendador = remember { AgendadorLembretes(context, repositorio) }
+
+    var arquivadoRecente by remember { mutableStateOf<Pair<Long, String>?>(null) }
+    LaunchedEffect(arquivadoRecente) {
+        if (arquivadoRecente != null) {
+            delay(5000)
+            arquivadoRecente = null
+        }
+    }
 
     HoraDoRemedioTheme(escala = escala) {
         NavHost(navController, startDestination = if (onboardingConcluido) "home" else "onboarding") {
@@ -82,16 +109,58 @@ fun RootView(repositorio: Repositorio, aoFicarPronto: () -> Unit) {
                 HomeScreen(
                     viewModel = homeViewModel,
                     aoTocarAdicionar = { navController.navigate("cadastro/novo") },
-                    aoTocarRemedio = { /* detalhe chega no épico 8.3 */ },
+                    aoTocarRemedio = { id -> navController.navigate("detalhe/$id") },
+                    nomeRecemArquivado = arquivadoRecente?.second,
+                    aoDesfazerArquivamento = {
+                        val (id, _) = arquivadoRecente ?: return@HomeScreen
+                        escopo.launch {
+                            repositorio.remedios.reativar(id)
+                            repositorio.remedios.buscar(id)?.let { agendador.agendarDoRemedio(it) }
+                        }
+                        arquivadoRecente = null
+                    },
                 )
             }
             composable("cadastro/novo") {
-                val agendador = remember { AgendadorLembretes(context, repositorio) }
                 val cadastroViewModel: CadastroViewModel = viewModel(factory = CadastroViewModelFactory(repositorio, agendador))
                 CadastroScreen(
                     viewModel = cadastroViewModel,
                     aoSalvar = { navController.popBackStack() },
                     aoCancelar = { navController.popBackStack() },
+                )
+            }
+            composable(
+                "cadastro/editar/{id}",
+                arguments = listOf(navArgument("id") { type = NavType.LongType }),
+            ) { entrada ->
+                val id = entrada.arguments!!.getLong("id")
+                val cadastroViewModel: CadastroViewModel = viewModel(
+                    key = "editar-$id",
+                    factory = CadastroViewModelFactory(repositorio, agendador, id),
+                )
+                CadastroScreen(
+                    viewModel = cadastroViewModel,
+                    aoSalvar = { navController.popBackStack("home", inclusive = false) },
+                    aoCancelar = { navController.popBackStack() },
+                )
+            }
+            composable(
+                "detalhe/{id}",
+                arguments = listOf(navArgument("id") { type = NavType.LongType }),
+            ) { entrada ->
+                val id = entrada.arguments!!.getLong("id")
+                val detalheViewModel: DetalheViewModel = viewModel(
+                    key = "detalhe-$id",
+                    factory = DetalheViewModelFactory(repositorio, agendador, id),
+                )
+                DetalheScreen(
+                    viewModel = detalheViewModel,
+                    aoEditar = { navController.navigate("cadastro/editar/$id") },
+                    aoVoltar = { navController.popBackStack() },
+                    aoArquivar = { nome ->
+                        arquivadoRecente = id to nome
+                        navController.popBackStack("home", inclusive = false)
+                    },
                 )
             }
         }

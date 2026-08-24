@@ -1,5 +1,7 @@
 // CadastroViewModel.kt — estado e validação do formulário (spec-ios.md 8.2). Validação só ao
 // tocar Salvar (nunca durante a digitação — 8.2). intervalo_dias fica fora da UI (spec.md §7).
+// `remedioIdParaEditar` != null vira o épico 8.3 (edição): carrega o remédio existente e, ao
+// salvar, REESCREVE horários e reagenda do zero em vez de criar (nunca edita notificação existente).
 
 package com.dablab.horadoremedio.telas.cadastro
 
@@ -20,7 +22,10 @@ import java.time.Instant
 class CadastroViewModel(
     private val repositorio: Repositorio,
     private val agendador: AgendadorLembretes,
+    private val remedioIdParaEditar: Long? = null,
 ) : ViewModel() {
+    val ehEdicao: Boolean get() = remedioIdParaEditar != null
+
     var nome by mutableStateOf("")
     var dose by mutableStateOf("")
     var forma by mutableStateOf(Forma.COMPRIMIDO.valor)
@@ -39,10 +44,33 @@ class CadastroViewModel(
         private set
     var salvando by mutableStateOf(false)
         private set
+    var carregado by mutableStateOf(remedioIdParaEditar == null)
+        private set
+    // Room's @Update substitui a linha inteira — precisa do criado_em original para não
+    // "re-nascer" o remédio a cada edição.
+    private var criadoEmOriginal: String? = null
 
     init {
         viewModelScope.launch {
-            cor = CorRemedio.proxima(repositorio.remedios.buscarUltimaCorCriada()).name.lowercase()
+            if (remedioIdParaEditar != null) {
+                val remedio = repositorio.remedios.buscar(remedioIdParaEditar)
+                if (remedio != null) {
+                    nome = remedio.nome
+                    dose = remedio.dose.orEmpty()
+                    forma = remedio.forma
+                    frequencia = remedio.frequencia
+                    diasSemana = remedio.diasSemana?.toSet() ?: emptySet()
+                    lembreteAtivo = remedio.lembreteAtivo
+                    observacao = remedio.observacao.orEmpty()
+                    cor = remedio.cor
+                    criadoEmOriginal = remedio.criadoEm
+                    horarios.clear()
+                    horarios.addAll(repositorio.horarios.listarDoRemedioUmaVez(remedioIdParaEditar).map { it.horaMinuto })
+                }
+                carregado = true
+            } else {
+                cor = CorRemedio.proxima(repositorio.remedios.buscarUltimaCorCriada()).name.lowercase()
+            }
         }
     }
 
@@ -66,7 +94,7 @@ class CadastroViewModel(
         horarios.remove(hhmm)
     }
 
-    /** Valida e salva. Devolve true se salvou. */
+    /** Valida e salva (cria ou atualiza, conforme `ehEdicao`). */
     fun salvar(aoConcluir: (Long) -> Unit) {
         erroNome = if (nome.isBlank()) "vazio" else null
         erroDiaSemana = if (frequencia == "dias_semana" && diasSemana.isEmpty()) "vazio" else null
@@ -78,22 +106,44 @@ class CadastroViewModel(
         viewModelScope.launch {
             val agora = Instant.now().toString()
             val ehQuandoPrecisar = frequencia == "quando_precisar"
-            val remedio = RemedioEntity(
-                nome = nome.trim(),
-                dose = dose.trim().ifBlank { null },
-                forma = forma,
-                frequencia = frequencia,
-                diasSemana = if (frequencia == "dias_semana") diasSemana.sorted().joinToString("") else null,
-                observacao = observacao.trim().ifBlank { null },
-                lembreteAtivo = if (ehQuandoPrecisar) false else lembreteAtivo,
-                cor = cor,
-                criadoEm = agora,
-                atualizadoEm = agora,
-            )
             val horariosParaSalvar = if (ehQuandoPrecisar) emptyList() else horarios.sorted()
-            val id = repositorio.criarRemedio(remedio, horariosParaSalvar)
-            if (remedio.lembreteAtivo) {
-                agendador.agendarDoRemedio(remedio.copy(id = id))
+            val lembreteFinal = if (ehQuandoPrecisar) false else lembreteAtivo
+
+            val id: Long
+            if (remedioIdParaEditar != null) {
+                id = remedioIdParaEditar
+                val remedio = RemedioEntity(
+                    id = id,
+                    nome = nome.trim(),
+                    dose = dose.trim().ifBlank { null },
+                    forma = forma,
+                    frequencia = frequencia,
+                    diasSemana = if (frequencia == "dias_semana") diasSemana.sorted().joinToString("") else null,
+                    observacao = observacao.trim().ifBlank { null },
+                    lembreteAtivo = lembreteFinal,
+                    cor = cor,
+                    criadoEm = criadoEmOriginal ?: agora,
+                    atualizadoEm = agora,
+                )
+                repositorio.atualizarRemedioComHorarios(remedio, horariosParaSalvar)
+                // agendarDoRemedio cancela tudo que já estava agendado antes de recriar — nunca
+                // edita um alarme existente (spec-ios.md 8.3).
+                if (lembreteFinal) agendador.agendarDoRemedio(remedio) else agendador.cancelarDoRemedio(id)
+            } else {
+                val remedio = RemedioEntity(
+                    nome = nome.trim(),
+                    dose = dose.trim().ifBlank { null },
+                    forma = forma,
+                    frequencia = frequencia,
+                    diasSemana = if (frequencia == "dias_semana") diasSemana.sorted().joinToString("") else null,
+                    observacao = observacao.trim().ifBlank { null },
+                    lembreteAtivo = lembreteFinal,
+                    cor = cor,
+                    criadoEm = agora,
+                    atualizadoEm = agora,
+                )
+                id = repositorio.criarRemedio(remedio, horariosParaSalvar)
+                if (lembreteFinal) agendador.agendarDoRemedio(remedio.copy(id = id))
             }
             salvando = false
             aoConcluir(id)

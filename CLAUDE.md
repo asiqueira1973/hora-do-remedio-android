@@ -116,35 +116,45 @@ adb shell am start -n com.dablab.horadoremedio.debug/com.dablab.horadoremedio.Ma
 **Feito e verificado no emulador (Pixel_10), fluxo ponta a ponta sem crash:** onboarding (2 telas)
 → Home vazia → cadastro (todos os 8 blocos do spec, menos o 4b cortado) → salvar → Home mostra os
 remédios agrupados por horário/faixa do dia, ordenados, com rodízio de cor certo (coral → azul no
-2º remédio criado). Épicos **8.0** (fundação) e **8.7** (onboarding) completos; **8.1** (Home) e
-**8.2** (Cadastro) funcionando de ponta a ponta, mas sem edição de forma completa ainda faltam
-alguns critérios de aceite finos (ver abaixo). Dois crashes reais encontrados e corrigidos durante
-a verificação no emulador — ver "Pegadinhas" #1 (trigger recursivo) e #3 (`SCHEDULE_EXACT_ALARM`).
+2º remédio criado). Épicos **8.0** (fundação), **8.1** (Home), **8.2** (Cadastro), **8.3**
+(Detalhe/edição/arquivamento) e **8.7** (onboarding) completos e verificados no emulador — ver
+"Verificado nesta sessão" abaixo para o que exatamente foi clicado e confirmado.
 
 **Motor de lembretes (8.4)** — `AgendadorLembretes.agendarDoRemedio` já é chamado de verdade pelo
-`CadastroViewModel.salvar`; o alarme é agendado (aproximado, já que a permissão de alarme exato
-ainda não tem tela de pedido — ver "Pegadinhas" #3) mas **o disparo em si (a notificação
-aparecendo na hora certa) ainda não foi observado** — só a chamada ao `AlarmManager` sem exceção.
-Precisa validar disparo real em device (o emulador não é confiável para isso).
+`CadastroViewModel.salvar` (criar e editar) e pelo `DetalheViewModel`/undo (arquivar/reativar); o
+alarme é agendado (aproximado, já que a permissão de alarme exato ainda não tem tela de pedido —
+ver "Pegadinhas" #3) mas **o disparo em si (a notificação aparecendo na hora certa) ainda não foi
+observado** — só a chamada ao `AlarmManager` sem exceção. Precisa validar disparo real em device
+(o emulador não é confiável para isso).
+
+**Verificado nesta sessão, ponta a ponta, no emulador Pixel_10:** onboarding → Home vazia →
+cadastro (nome, dose, forma com rótulos acentuados certos, frequência, horário via TimePicker,
+lembrete, observação, cor) → salvar → Home mostra o card certo → tocar no card abre o Detalhe com
+horário e status do aviso → Editar reabre o formulário preenchido com "Salvar alterações" →
+"Parar de tomar" pede confirmação com o nome interpolado certo → confirma → arquiva, some da Home,
+mostra a faixa "X foi arquivado" + Desfazer → **Desfazer confirmado funcionando** (custou várias
+tentativas: os primeiros testes "falharam" porque o toque no emulador, mediado por várias chamadas
+de ferramenta em sequência, várias vezes chegou depois dos 5s da faixa — não é bug de app; verificado
+de vez alongando o timer para 30s só para teste, confirmando que `reativar()` + Flow reativo
+funcionam certinho, e revertido para os 5s do spec antes do commit).
 
 **Falta (nesta ordem, spec.md §8):**
-1. Fechar as pontas do 8.2: horário duplicado/máximo de 6 (lógica já existe em
-   `CadastroViewModel.adicionarHorario`, mas a mensagem "repetido" na tela ainda não usa a string
-   certa — só mostra a chave crua), teste em escala `gigante`, e revalidar bloco "Alguns dias da
-   semana"/"Quando precisar" (implementados, não testados no emulador ainda).
-2. **Épico 8.3 — Detalhe, edição, arquivamento** (3 rotas) — hoje tocar um card na Home não faz
-   nada (`aoTocarRemedio` é um no-op em `RootView`).
-3. Tela de pedir `SCHEDULE_EXACT_ALARM`/`POST_NOTIFICATIONS` (spec-ios.md 8.4) e validar o disparo
-   da notificação de verdade em device real.
+1. Tela de pedir `SCHEDULE_EXACT_ALARM`/`POST_NOTIFICATIONS` (spec-ios.md 8.4) e validar o disparo
+   da notificação de verdade em device real (não emulador).
+2. Confirmação própria ao mudar frequência para "quando_precisar" durante a EDIÇÃO (spec-ios.md
+   8.3, "Regras de edição" — não é critério de aceite obrigatório, mas está no spec).
+3. Teste em escala de fonte `gigante` (nenhum rótulo pode cortar) — ainda não verificado.
 4. **Épico 8.5 — Exportação** (`gerarTexto` portado + `Intent.ACTION_SEND`).
-5. **Épico 8.6 — Ajustes** (tamanho de letra, som, arquivados, sobre, apagar tudo).
+5. **Épico 8.6 — Ajustes** (tamanho de letra, som, arquivados — "Remédios que parei" é a única
+   forma de ver/reativar um remédio arquivado depois que a faixa de 5s some sem o Desfazer, então
+   este épico importa cedo), sobre, apagar tudo.
 6. Testes: JVM puro para `agruparParaHome`, `proximoDisparoMillis`, `calcularCustoDeAgendamento`
    (funções já são puras e testáveis, só falta escrever os testes); instrumentados para Room.
-8. Ícone de notificação próprio (hoje usa um ícone de sistema placeholder em `NotificationHelper`
+7. Ícone de notificação próprio (hoje usa um ícone de sistema placeholder em `NotificationHelper`
    — falta um ícone monocromático adequado para a barra de status).
-9. `DOCUMENTACAO-TECNICA.md` e `README.md` (entregáveis de fim, só depois do app estar navegável).
-10. Play Console (assinatura release, ficha da loja, produto/testador) — fica pro "meio", quando o
-    app estiver navegável (mesma sequência usada no I See Life Android).
+8. `DOCUMENTACAO-TECNICA.md` e `README.md` (entregáveis de fim, só depois do app estar navegável).
+9. Play Console (assinatura release, ficha da loja, produto/testador) — fica pro "meio", quando o
+   app estiver navegável (mesma sequência usada no I See Life Android).
 
 **Pendências para o Alexandre decidir** (não são técnicas — feedback_decisoes_tecnicas):
 nenhuma ainda. Tudo que foi decidido até aqui era técnico e ficou registrado no spec.md/neste

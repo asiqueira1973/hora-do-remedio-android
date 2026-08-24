@@ -77,6 +77,7 @@ private val ROTULO_FORMA = mapOf(
 @Composable
 fun CadastroScreen(viewModel: CadastroViewModel, aoSalvar: (Long) -> Unit, aoCancelar: () -> Unit) {
     val escala = LocalEscalaFonte.current
+    if (!viewModel.carregado) return // edição: espera carregar o remédio antes de desenhar o formulário
     var confirmandoSaida by remember { mutableStateOf(false) }
     var mostrandoTimePicker by remember { mutableStateOf(false) }
     var mensagemHorario by remember { mutableStateOf<String?>(null) }
@@ -249,7 +250,10 @@ fun CadastroScreen(viewModel: CadastroViewModel, aoSalvar: (Long) -> Unit, aoCan
                 enabled = !viewModel.salvando,
                 shape = RoundedCornerShape(14.dp),
             ) {
-                Text(stringResource(R.string.cadastro_salvar), style = estiloTipografico(TokenTipografico.BOTAO, escala))
+                Text(
+                    stringResource(if (viewModel.ehEdicao) R.string.cadastro_salvar_edicao else R.string.cadastro_salvar),
+                    style = estiloTipografico(TokenTipografico.BOTAO, escala),
+                )
             }
         }
     }

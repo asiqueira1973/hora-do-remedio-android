@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Textos de interface (spec.md §9), transcritos letra por letra de textos.ts (iOS) —
+     nomes de chave viram snake_case com prefixo de tela, mas o texto em si não muda.
+     Duas adaptações deliberadas de plataforma (não são erro de tradução): "no iPhone" e
+     "no seu iPhone" viram "no celular"/"no seu celular" em home_avisos_desligados,
+     ajustes_privacidade e onboarding_tela2_titulo — o resto é idêntico ao iOS.
+     detalhe_parar_confirmacao_titulo e detalhe_arquivado_faixa eram funções que
+     interpolavam o nome do remédio (`${nome}`) — viram format strings com %1$s. -->
+<resources>
+    <string name="app_name">Hora do Remédio</string>
+
+    <!-- home -->
+    <string name="home_saudacao_manha">Bom dia</string>
+    <string name="home_saudacao_tarde">Boa tarde</string>
+    <string name="home_saudacao_noite">Boa noite</string>
+    <string name="home_vazio_titulo">Você ainda não cadastrou nenhum remédio</string>
+    <string name="home_vazio_texto">Toque no botão azul para cadastrar o primeiro</string>
+    <string name="home_botao_adicionar">+ Adicionar remédio</string>
+    <string name="home_botao_compartilhar">Compartilhar minha lista</string>
+    <string name="home_botao_compartilhar_desabilitado">Cadastre um remédio primeiro</string>
+    <string name="home_sem_aviso">sem aviso</string>
+    <string name="home_quando_precisar">Quando precisar</string>
+    <string name="home_avisos_desligados">Os avisos estão desligados no celular. Toque aqui para ligar</string>
+    <string name="home_cota_estourada">Você tem muitos remédios cadastrados. Alguns avisos podem não chegar. Abra o app uma vez por dia para manter os avisos em dia.</string>
+
+    <!-- cadastro -->
+    <string name="cadastro_nome_pergunta">Qual o nome do remédio?</string>
+    <string name="cadastro_dose_pergunta">Qual a dose?</string>
+    <string name="cadastro_dose_exemplo">Ex.: 50mg, 1 comprimido, 10 gotas</string>
+    <string name="cadastro_forma_pergunta">Como você toma?</string>
+    <string name="cadastro_frequencia_pergunta">Com que frequência?</string>
+    <string name="cadastro_horarios_pergunta">A que horas?</string>
+    <string name="cadastro_horarios_adicionar">Adicionar horário</string>
+    <string name="cadastro_horario_confirmar">Pronto</string>
+    <string name="cadastro_horario_cancelar_selecao">Cancelar</string>
+    <string name="cadastro_lembrete_pergunta">Quer ser lembrado?</string>
+    <string name="cadastro_lembrete_sim">Sim, me avise</string>
+    <string name="cadastro_lembrete_nao">Não precisa avisar</string>
+    <string name="cadastro_observacao_pergunta">Alguma observação?</string>
+    <string name="cadastro_observacao_exemplo">Ex.: tomar em jejum</string>
+    <string name="cadastro_cor_pergunta">Escolha uma cor</string>
+    <string name="cadastro_salvar">Salvar remédio</string>
+    <string name="cadastro_salvar_edicao">Salvar alterações</string>
+    <string name="cadastro_cancelar">Cancelar</string>
+    <string name="cadastro_erro_nome_vazio">Escreva o nome do remédio</string>
+    <string name="cadastro_erro_sem_horario">Escolha pelo menos uma hora</string>
+    <string name="cadastro_erro_sem_dia_semana">Escolha pelo menos um dia</string>
+    <string name="cadastro_erro_horario_repetido">Esse horário já está na lista</string>
+    <string name="cadastro_erro_maximo_horarios">São no máximo 6 horários por remédio</string>
+    <string name="cadastro_erro_ao_salvar">Não conseguimos salvar. Tente de novo.</string>
+    <string name="cadastro_sair_sem_salvar_titulo">Sair sem salvar?</string>
+    <string name="cadastro_sair_sem_salvar_texto">O que você preencheu será perdido.</string>
+    <string name="cadastro_sair_sem_salvar_continuar">Continuar editando</string>
+    <string name="cadastro_sair_sem_salvar_confirmar">Sair sem salvar</string>
+
+    <!-- detalhe -->
+    <string name="detalhe_editar">Editar</string>
+    <string name="detalhe_parar">Parar de tomar</string>
+    <string name="detalhe_voltar">Voltar</string>
+    <string name="detalhe_parar_confirmacao_titulo">Parar de tomar %1$s?</string>
+    <string name="detalhe_parar_confirmacao_texto">Ele sai da sua lista e os avisos param. Você pode voltar a tomar depois.</string>
+    <string name="detalhe_parar_confirmacao_sim">Sim, parar</string>
+    <string name="detalhe_parar_confirmacao_cancelar">Cancelar</string>
+    <string name="detalhe_arquivado_faixa">%1$s foi arquivado</string>
+    <string name="detalhe_arquivado_desfazer">Desfazer</string>
+    <string name="detalhe_mudar_para_quando_precisar_titulo">Tirar dos horários?</string>
+    <string name="detalhe_mudar_para_quando_precisar_texto">Esse remédio vai sair dos horários e os avisos vão parar. Continuar?</string>
+    <string name="detalhe_mudar_para_quando_precisar_cancelar">Cancelar</string>
+    <string name="detalhe_mudar_para_quando_precisar_confirmar">Continuar</string>
+    <string name="detalhe_titulo_detalhes">Detalhes</string>
+    <string name="detalhe_titulo_acoes">Ações</string>
+    <string name="detalhe_avisos_ligados">Avisos ligados</string>
+
+    <!-- permissao -->
+    <string name="permissao_titulo">Para avisar na hora do remédio, o app precisa da sua permissão</string>
+    <string name="permissao_texto">Na próxima tela, toque em Permitir.</string>
+    <string name="permissao_continuar">Continuar</string>
+    <string name="permissao_agora_nao">Agora não</string>
+
+    <!-- ajustes -->
+    <string name="ajustes_titulo">Ajustes</string>
+    <string name="ajustes_tamanho_letras">Tamanho das letras</string>
+    <string name="ajustes_tamanho_grande">Grande</string>
+    <string name="ajustes_tamanho_gigante">Gigante</string>
+    <string name="ajustes_tamanho_exemplo">Losartana</string>
+    <string name="ajustes_som_aviso">Som do aviso</string>
+    <string name="ajustes_titulo_remedios">Remédios</string>
+    <string name="ajustes_titulo_sobre">Sobre</string>
+    <string name="ajustes_arquivados">Remédios que parei</string>
+    <string name="ajustes_sobre">Sobre o app</string>
+    <string name="ajustes_apagar_tudo">Apagar todos os meus dados</string>
+    <string name="ajustes_privacidade">Seus dados ficam só no seu celular. Nada é enviado para a internet.</string>
+    <string name="ajustes_apagar_confirmacao1_titulo">Apagar todos os meus dados?</string>
+    <string name="ajustes_apagar_confirmacao1_texto">Todos os remédios e avisos cadastrados serão removidos. Não é possível desfazer.</string>
+    <string name="ajustes_apagar_confirmacao1_cancelar">Cancelar</string>
+    <string name="ajustes_apagar_confirmacao1_continuar">Continuar</string>
+    <string name="ajustes_apagar_confirmacao2_titulo">Tem certeza?</string>
+    <string name="ajustes_apagar_confirmacao2_texto">Ao confirmar, os remédios, horários e avisos somem agora mesmo.</string>
+    <string name="ajustes_apagar_confirmacao2_cancelar">Cancelar</string>
+    <string name="ajustes_apagar_confirmacao2_confirmar">Sim, apagar tudo</string>
+
+    <!-- sobre -->
+    <string name="sobre_politica_privacidade">Política de Privacidade</string>
+    <string name="sobre_url_politica_privacidade">https://app.notion.com/p/Pol-tica-de-Privacidade-Hora-do-Rem-dio-3ab4305f24e180ec88dedebfcade9f95?source=copy_link</string>
+
+    <!-- arquivados -->
+    <string name="arquivados_vazio">Você não parou de tomar nenhum remédio</string>
+    <string name="arquivados_voltar_a_tomar">Voltar a tomar</string>
+
+    <!-- onboarding -->
+    <string name="onboarding_tela1_titulo">Seus remédios, na hora certa</string>
+    <string name="onboarding_tela1_texto">Cadastre o que você toma e o app avisa na hora.</string>
+    <string name="onboarding_tela1_botao">Continuar</string>
+    <string name="onboarding_tela2_titulo">Tudo fica só no seu celular</string>
+    <string name="onboarding_tela2_texto">Nada é enviado para a internet. Funciona sem sinal.</string>
+    <string name="onboarding_tela2_botao">Começar</string>
+
+    <!-- erro -->
+    <string name="erro_banco_titulo">Não conseguimos abrir seus dados</string>
+    <string name="erro_banco_texto">Feche o app e abra de novo.</string>
+    <string name="erro_banco_botao">Tentar de novo</string>
+    <string name="erro_agendamento">Não conseguimos programar o aviso deste remédio.</string>
+
+    <!-- notificacao -->
+    <string name="notificacao_titulo">Hora do remédio 💊</string>
+</resources>

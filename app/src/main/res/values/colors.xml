@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tokens de cor (spec.md §2, tradução do redesenho iOS — DOCUMENTACAO-TECNICA-ios.md §19.6).
+     Cores semânticas primeiro, depois a paleta de identificação dos 6 remédios (idêntica ao iOS,
+     não são cores de sistema operacional). -->
+<resources>
+    <!-- Semânticas -->
+    <color name="acao">#FF007AFF</color>
+    <color name="perigo">#FFFF3B30</color>
+    <color name="atencao">#FFFF9500</color>
+    <color name="neutro_texto">#FF1C1C1E</color>
+    <color name="neutro_texto_secundario">#FF6E6E73</color>
+    <color name="neutro_fundo">#FFF2F2F7</color>
+    <color name="neutro_superficie">#FFFFFFFF</color>
+    <color name="neutro_borda">#FFE5E5EA</color>
+    <color name="chevron">#FFC7C7CC</color>
+
+    <!-- Paleta de identificação dos remédios (16.3 do spec iOS) — fundo/texto/detalhe -->
+    <color name="coral_fundo">#FFFFD9D0</color>
+    <color name="coral_texto">#FF3A2520</color>
+    <color name="coral_detalhe">#FFE8654A</color>
+
+    <color name="azul_fundo">#FFCFE4FF</color>
+    <color name="azul_texto">#FF1C2B3D</color>
+    <color name="azul_detalhe">#FF2F7FE0</color>
+
+    <color name="verde_fundo">#FFCFF0D8</color>
+    <color name="verde_texto">#FF1D3325</color>
+    <color name="verde_detalhe">#FF2FA35C</color>
+
+    <color name="amarelo_fundo">#FFFFEBB8</color>
+    <color name="amarelo_texto">#FF3A3018</color>
+    <color name="amarelo_detalhe">#FFE5A400</color>
+
+    <color name="lilas_fundo">#FFE4D9FF</color>
+    <color name="lilas_texto">#FF2C2340</color>
+    <color name="lilas_detalhe">#FF7C5AE0</color>
+
+    <color name="pessego_fundo">#FFFFE0C2</color>
+    <color name="pessego_texto">#FF3A2A18</color>
+    <color name="pessego_detalhe">#FFE07B2F</color>
+
+    <!-- Ícone do launcher -->
+    <color name="icone_fundo">#FFE15E44</color>
+</resources>

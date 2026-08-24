@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tema do app (spec.md §2). App é sempre CLARO (userInterfaceStyle "light" no iOS): fundo cinza
+     claro de "grouped list", barras claras. Parent do framework para não depender de lib de View —
+     a UI real é Compose/Material3 (a ColorScheme completa fica em designsystem/Tema.kt). -->
+<resources>
+    <style name="Theme.HoraDoRemedio" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/neutro_fundo</item>
+        <item name="android:statusBarColor">@color/neutro_fundo</item>
+        <item name="android:navigationBarColor">@color/neutro_fundo</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+</resources>

@@ -1,0 +1,46 @@
+// Hora do Remédio — modelo de dados (Room/SQLite), idêntico ao schema iOS.
+// Gerado a partir de spec.md §4 e SCHEMA-ios.md.
+
+Table remedios {
+  id integer [pk, increment]
+  nome text [not null, note: '1–60 caracteres, não vazio (ck_remedios_nome_nao_vazio)']
+  dose text [note: 'nulo quando não informado']
+  forma text [not null, default: 'comprimido', note: 'enum (ck_remedios_forma)']
+  frequencia text [not null, default: 'diario', note: 'enum (ck_remedios_frequencia)']
+  intervalo_dias integer [note: 'só quando frequencia=intervalo_dias (ck_remedios_intervalo_coerente); cortado da UI']
+  dias_semana text [note: 'só quando frequencia=dias_semana (ck_remedios_dias_semana_coerente)']
+  observacao text [note: 'nulo quando não informado']
+  lembrete_ativo integer [not null, default: 1, note: '0/1 (ck_remedios_lembrete_ativo)']
+  cor text [not null, note: 'enum (ck_remedios_cor)']
+  arquivado_em text [note: 'nulo enquanto ativo']
+  criado_em text [not null]
+  atualizado_em text [not null, note: 'mantida por trigger trg_remedios_atualizado_em']
+}
+
+Table horarios {
+  id integer [pk, increment]
+  remedio_id integer [not null, ref: > remedios.id]
+  hora_minuto text [not null, note: 'formato HH:MM (ck_horarios_formato)']
+  ordem integer [not null, default: 0]
+  criado_em text [not null]
+
+  indexes {
+    (remedio_id, hora_minuto) [unique, name: 'uq_horarios_remedio_hora']
+  }
+}
+
+Table notificacoes_agendadas {
+  id integer [pk, increment]
+  horario_id integer [not null, ref: > horarios.id]
+  identificador_ios text [not null, unique, note: 'identificador opaco do agendamento (PendingIntent/requestCode no Android)']
+  disparo_em text [note: 'próximo disparo previsto; nulo para gatilhos repetitivos']
+  criado_em text [not null]
+}
+
+Table preferencias {
+  id integer [pk, note: 'sempre 1 (ck_preferencias_linha_unica)']
+  escala_fonte text [not null, default: 'grande', note: 'grande|gigante (ck_preferencias_escala)']
+  som_lembrete integer [not null, default: 1, note: '0/1 (ck_preferencias_som)']
+  onboarding_concluido_em text [note: 'nulo até concluir o onboarding']
+  atualizado_em text [not null, note: 'mantida por trigger trg_preferencias_atualizado_em']
+}

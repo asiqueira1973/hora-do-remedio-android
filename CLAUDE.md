@@ -189,7 +189,10 @@ notificação (`ic_notificacao.xml`, sino monocromático, trocou o placeholder d
 `NotificationHelper`); grep final por `.height()` fixo fora de Spacers (achou 1 em `CadastroScreen`
 — campos de texto e a linha de frequência usavam `heightMinimo()` fixo, virou `heightIn(min=)`);
 testes instrumentados do Room (`AppDatabaseConstraintsTest`, 9 testes, exercitam CHECK/FK/UNIQUE/
-trigger que só o SQLite real valida — Room não olha isso na validação de schema).
+trigger que só o SQLite real valida — Room não olha isso na validação de schema);
+`DOCUMENTACAO-TECNICA.md` e `README.md` escritos a partir do sistema real implementado (regra da
+seção 19 do spec.md — atualizar os dois no mesmo commit de qualquer mudança de schema/trigger/lógica
+de tela).
 
 **Falta:**
 1. Observar o disparo real da notificação em device físico (maior item pendente — só dá pra testar
@@ -197,9 +200,7 @@ trigger que só o SQLite real valida — Room não olha isso na validação de s
 2. Telas de marketing da Play Store — tem uma referência visual pronta em
    `marketing/reference-appstore-ios/` (as 3 telas do iOS, mesmo conteúdo) esperando pra virar a
    versão Android (Material 3, tamanho que o Google exige — ver o README daquela pasta).
-3. `DOCUMENTACAO-TECNICA.md` e `README.md` (entregáveis de fim, agora que o app está navegável de
-   ponta a ponta).
-4. Play Console (assinatura release, ficha da loja, produto/testador) — fica pro "meio"; o app já
+3. Play Console (assinatura release, ficha da loja, produto/testador) — fica pro "meio"; o app já
    está navegável, então este é o próximo marco natural quando o Alexandre decidir seguir.
 
 **Pendências para o Alexandre decidir** (não são técnicas — feedback_decisoes_tecnicas):

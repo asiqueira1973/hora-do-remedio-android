@@ -5,6 +5,7 @@
 
 package com.dablab.horadoremedio.telas.cadastro
 
+import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -16,6 +17,7 @@ import com.dablab.horadoremedio.dados.RemedioEntity
 import com.dablab.horadoremedio.dados.Repositorio
 import com.dablab.horadoremedio.designsystem.CorRemedio
 import com.dablab.horadoremedio.lembretes.AgendadorLembretes
+import com.dablab.horadoremedio.lembretes.PermissoesLembrete
 import kotlinx.coroutines.launch
 import java.time.Instant
 
@@ -94,8 +96,15 @@ class CadastroViewModel(
         horarios.remove(hhmm)
     }
 
-    /** Valida e salva (cria ou atualiza, conforme `ehEdicao`). */
-    fun salvar(aoConcluir: (Long) -> Unit) {
+    /**
+     * Valida e salva (cria ou atualiza, conforme `ehEdicao`).
+     *
+     * Se o remédio ficou com lembrete ligado e falta permissão (notificação e/ou alarme exato —
+     * spec.md "Pegadinhas" #3), o agendamento é PULADO aqui e `aoConcluir` avisa com
+     * `precisaPermissao=true`: quem chama (RootView) desvia pra tela explicativa antes de agendar
+     * de verdade — mesma orquestração de `novo.tsx`/`editar.tsx` no iOS (8.4, "Fluxo de permissão").
+     */
+    fun salvar(context: Context, aoConcluir: (id: Long, precisaPermissao: Boolean) -> Unit) {
         erroNome = if (nome.isBlank()) "vazio" else null
         erroDiaSemana = if (frequencia == "dias_semana" && diasSemana.isEmpty()) "vazio" else null
         erroHorario = if (frequencia != "quando_precisar" && horarios.isEmpty()) "vazio" else null
@@ -108,6 +117,7 @@ class CadastroViewModel(
             val ehQuandoPrecisar = frequencia == "quando_precisar"
             val horariosParaSalvar = if (ehQuandoPrecisar) emptyList() else horarios.sorted()
             val lembreteFinal = if (ehQuandoPrecisar) false else lembreteAtivo
+            val precisaPermissao = lembreteFinal && PermissoesLembrete.precisaExplicarPermissao(context)
 
             val id: Long
             if (remedioIdParaEditar != null) {
@@ -128,7 +138,11 @@ class CadastroViewModel(
                 repositorio.atualizarRemedioComHorarios(remedio, horariosParaSalvar)
                 // agendarDoRemedio cancela tudo que já estava agendado antes de recriar — nunca
                 // edita um alarme existente (spec-ios.md 8.3).
-                if (lembreteFinal) agendador.agendarDoRemedio(remedio) else agendador.cancelarDoRemedio(id)
+                when {
+                    !lembreteFinal -> agendador.cancelarDoRemedio(id)
+                    !precisaPermissao -> agendador.agendarDoRemedio(remedio)
+                    // precisaPermissao=true: quem chama agenda depois da tela explicativa.
+                }
             } else {
                 val remedio = RemedioEntity(
                     nome = nome.trim(),
@@ -143,10 +157,10 @@ class CadastroViewModel(
                     atualizadoEm = agora,
                 )
                 id = repositorio.criarRemedio(remedio, horariosParaSalvar)
-                if (lembreteFinal) agendador.agendarDoRemedio(remedio.copy(id = id))
+                if (lembreteFinal && !precisaPermissao) agendador.agendarDoRemedio(remedio.copy(id = id))
             }
             salvando = false
-            aoConcluir(id)
+            aoConcluir(id, precisaPermissao)
         }
     }
 

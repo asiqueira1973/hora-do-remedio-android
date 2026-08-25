@@ -47,6 +47,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
@@ -76,8 +77,9 @@ private val ROTULO_FORMA = mapOf(
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun CadastroScreen(viewModel: CadastroViewModel, aoSalvar: (Long) -> Unit, aoCancelar: () -> Unit) {
+fun CadastroScreen(viewModel: CadastroViewModel, aoSalvar: (id: Long, precisaPermissao: Boolean) -> Unit, aoCancelar: () -> Unit) {
     val escala = LocalEscalaFonte.current
+    val context = LocalContext.current
     if (!viewModel.carregado) return // edição: espera carregar o remédio antes de desenhar o formulário
     var confirmandoSaida by remember { mutableStateOf(false) }
     var mostrandoTimePicker by remember { mutableStateOf(false) }
@@ -246,7 +248,7 @@ fun CadastroScreen(viewModel: CadastroViewModel, aoSalvar: (Long) -> Unit, aoCan
             }
 
             Button(
-                onClick = { viewModel.salvar(aoConcluir = aoSalvar) },
+                onClick = { viewModel.salvar(context, aoConcluir = aoSalvar) },
                 modifier = Modifier.fillMaxWidth().padding(20.dp).heightIn(min = 64.dp),
                 enabled = !viewModel.salvando,
                 shape = RoundedCornerShape(14.dp),

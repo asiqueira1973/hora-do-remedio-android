@@ -36,6 +36,8 @@ import com.dablab.horadoremedio.telas.detalhe.DetalheViewModel
 import com.dablab.horadoremedio.telas.home.HomeScreen
 import com.dablab.horadoremedio.telas.home.HomeViewModel
 import com.dablab.horadoremedio.telas.onboarding.OnboardingScreen
+import com.dablab.horadoremedio.telas.permissao.PermissaoAvisoScreen
+import com.dablab.horadoremedio.telas.permissao.PermissaoAvisoViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -81,6 +83,16 @@ private class ArquivadosViewModelFactory(
     @Suppress("UNCHECKED_CAST")
     override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T =
         ArquivadosViewModel(repositorio, agendador) as T
+}
+
+private class PermissaoAvisoViewModelFactory(
+    private val repositorio: Repositorio,
+    private val agendador: AgendadorLembretes,
+    private val remedioId: Long,
+) : ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T =
+        PermissaoAvisoViewModel(repositorio, agendador, remedioId) as T
 }
 
 @Composable
@@ -148,7 +160,9 @@ fun RootView(repositorio: Repositorio, aoFicarPronto: () -> Unit) {
                 val cadastroViewModel: CadastroViewModel = viewModel(factory = CadastroViewModelFactory(repositorio, agendador))
                 CadastroScreen(
                     viewModel = cadastroViewModel,
-                    aoSalvar = { navController.popBackStack() },
+                    aoSalvar = { id, precisaPermissao ->
+                        if (precisaPermissao) navController.navigate("permissao/$id") else navController.popBackStack()
+                    },
                     aoCancelar = { navController.popBackStack() },
                 )
             }
@@ -163,8 +177,28 @@ fun RootView(repositorio: Repositorio, aoFicarPronto: () -> Unit) {
                 )
                 CadastroScreen(
                     viewModel = cadastroViewModel,
-                    aoSalvar = { navController.popBackStack("home", inclusive = false) },
+                    aoSalvar = { editadoId, precisaPermissao ->
+                        if (precisaPermissao) {
+                            navController.navigate("permissao/$editadoId")
+                        } else {
+                            navController.popBackStack("home", inclusive = false)
+                        }
+                    },
                     aoCancelar = { navController.popBackStack() },
+                )
+            }
+            composable(
+                "permissao/{id}",
+                arguments = listOf(navArgument("id") { type = NavType.LongType }),
+            ) { entrada ->
+                val id = entrada.arguments!!.getLong("id")
+                val permissaoViewModel: PermissaoAvisoViewModel = viewModel(
+                    key = "permissao-$id",
+                    factory = PermissaoAvisoViewModelFactory(repositorio, agendador, id),
+                )
+                PermissaoAvisoScreen(
+                    viewModel = permissaoViewModel,
+                    aoConcluir = { navController.popBackStack("home", inclusive = false) },
                 )
             }
             composable(

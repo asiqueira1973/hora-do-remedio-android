@@ -160,12 +160,19 @@ Compartilhar minha lista (Home e Ajustes) → Apagar todos os meus dados com dup
 do spec → volta ao onboarding com o banco limpo. 20 testes JVM passando (`gerarTexto` com
 comparação literal 22.1.3, `agruparParaHome`, `proximoDisparoMillis`, `calcularCustoDeAgendamento`).
 
-**Motor de lembretes (8.4)** — `AgendadorLembretes.agendarDoRemedio` é chamado de verdade pelo
-cadastro/edição/arquivamento/"voltar a tomar", e `mudarSom` (Ajustes) reagenda tudo trocando de
-canal (com som/silencioso — ver "Pegadinhas" #9). O alarme é agendado (aproximado, já que a
-permissão de alarme exato ainda não tem tela de pedido — "Pegadinhas" #3) mas **o disparo em si (a
-notificação aparecendo na hora certa) ainda não foi observado** — só a chamada ao `AlarmManager`
-sem exceção. Precisa validar disparo real em device (o emulador não é confiável para isso).
+**Motor de lembretes (8.4) + fluxo de permissão completo e verificado no emulador** —
+`AgendadorLembretes.agendarDoRemedio` é chamado de verdade pelo cadastro/edição/arquivamento/
+"voltar a tomar", e `mudarSom` (Ajustes) reagenda tudo trocando de canal (com som/silencioso — ver
+"Pegadinhas" #9). `telas/permissao/PermissaoAvisoScreen` (nova) reproduz o "Fluxo de permissão" da
+8.4: `CadastroViewModel.salvar` PULA o agendamento quando falta permissão e avisa quem chama
+(`precisaPermissao=true`); `RootView` desvia pra tela explicativa antes de agendar de verdade.
+Testado no emulador ponta a ponta: tela explicativa → diálogo real do Android pra
+`POST_NOTIFICATIONS` → tela do sistema "Alarms & reminders" (deep link certo pro app, via
+`Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM`) → volta pro Home com o remédio já agendado, sem
+`SecurityException`. Home também ganhou a faixa "Os avisos estão desligados" (`PermissoesLembrete`,
+reverificada a cada `ON_RESUME` — a pessoa pode ter mudado a permissão nos Ajustes sem fechar o
+app), igual à faixa do iOS. **Falta só**: observar o disparo real da notificação na hora certa em
+device físico (o emulador não é confiável pra isso).
 
 **Bugs reais encontrados e corrigidos nesta sessão, todos verificados no emulador**: trigger
 recursivo do SQLite (crash), `SCHEDULE_EXACT_ALARM` sem checagem em runtime (crash), rótulos de
@@ -173,9 +180,9 @@ forma sem acento, mensagem de horário repetido mostrando a chave crua, `StateFl
 nunca coletada travando a exportação em lista vazia, cabeçalho da Home sob a status bar, botão de
 "Apagar tudo" cortando texto em 2 linhas na escala gigante.
 
-**Falta (nesta ordem, spec.md §8 já não define mais ordem — os 8 épicos estão feitos):**
-1. Tela de pedir `SCHEDULE_EXACT_ALARM`/`POST_NOTIFICATIONS` (spec-ios.md 8.4) e validar o disparo
-   da notificação de verdade em device real (não emulador) — maior item pendente.
+**Falta:**
+1. Observar o disparo real da notificação em device físico (maior item pendente — só dá pra testar
+   fora do emulador).
 2. Confirmação própria ao mudar frequência para "quando_precisar" durante a EDIÇÃO (spec-ios.md
    8.3, "Regras de edição" — não é critério de aceite obrigatório, mas está no spec).
 3. Testes instrumentados para Room (constraints/triggers via SQL bruto — nenhum ainda).
@@ -183,7 +190,10 @@ nunca coletada travando a exportação em lista vazia, cabeçalho da Home sob a 
    — falta um ícone monocromático adequado para a barra de status).
 5. Revisar se algum outro botão/rótulo do app ainda usa `.height()` fixo em vez de `.heightIn(min=)`
    (ver "Pegadinhas" #10 — já corrigido nos botões principais, mas vale um grep final).
-6. `DOCUMENTACAO-TECNICA.md` e `README.md` (entregáveis de fim, agora que o app está navegável de
+6. Telas de marketing da Play Store — tem uma referência visual pronta em
+   `marketing/reference-appstore-ios/` (as 3 telas do iOS, mesmo conteúdo) esperando pra virar a
+   versão Android (Material 3, tamanho que o Google exige — ver o README daquela pasta).
+7. `DOCUMENTACAO-TECNICA.md` e `README.md` (entregáveis de fim, agora que o app está navegável de
    ponta a ponta).
 7. Play Console (assinatura release, ficha da loja, produto/testador) — fica pro "meio"; o app já
    está navegável, então este é o próximo marco natural quando o Alexandre decidir seguir.

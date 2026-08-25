@@ -35,14 +35,22 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.dablab.horadoremedio.R
 import com.dablab.horadoremedio.dados.RemedioEntity
 import com.dablab.horadoremedio.designsystem.Cores
@@ -52,6 +60,7 @@ import com.dablab.horadoremedio.designsystem.TokenTipografico
 import com.dablab.horadoremedio.designsystem.estiloTipografico
 import com.dablab.horadoremedio.exportacao.compartilharTexto
 import com.dablab.horadoremedio.exportacao.gerarTexto
+import com.dablab.horadoremedio.lembretes.PermissoesLembrete
 import com.dablab.horadoremedio.telas.common.iconeDaForma
 
 private fun rotuloSaudacao(saudacao: Saudacao): Int = when (saudacao) {
@@ -79,6 +88,20 @@ fun HomeScreen(
     val escala = LocalEscalaFonte.current
     val context = LocalContext.current
     val temAtivos = !grupos.isNullOrEmpty()
+
+    // Verificada na abertura e ao voltar do background (spec-ios.md 12.3) — a pessoa pode ter
+    // mudado a permissão nos Ajustes do sistema sem fechar o app.
+    var avisosDesligados by remember { mutableStateOf(!PermissoesLembrete.notificacoesPermitidas(context)) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                avisosDesligados = !PermissoesLembrete.notificacoesPermitidas(context)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     Scaffold(
         containerColor = Cores.neutroFundo,
@@ -125,6 +148,32 @@ fun HomeScreen(
         },
     ) { paddingInterno ->
         Box(Modifier.fillMaxSize().padding(paddingInterno)) {
+            Column(Modifier.fillMaxSize()) {
+                if (avisosDesligados) {
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp)
+                            .padding(top = 8.dp)
+                            .heightIn(min = 60.dp)
+                            .background(Cores.atencao, RoundedCornerShape(16.dp))
+                            .clickable {
+                                context.startActivity(
+                                    android.content.Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                                        .putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, context.packageName)
+                                )
+                            }
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            stringResource(R.string.home_avisos_desligados),
+                            style = estiloTipografico(TokenTipografico.APOIO, escala),
+                            color = androidx.compose.ui.graphics.Color.White,
+                        )
+                    }
+                }
+                Box(Modifier.weight(1f).fillMaxWidth()) {
             when {
                 grupos == null -> Unit // splash já cobriu a carga inicial (8.0) — sem spinner (8.1)
                 grupos!!.isEmpty() -> EstadoVazio(Modifier.align(Alignment.Center))
@@ -137,6 +186,8 @@ fun HomeScreen(
                         items(grupos!!) { grupo -> GrupoSecao(grupo, aoTocarRemedio, escala) }
                         item { Spacer(Modifier.height(96.dp)) }
                     }
+                }
+            }
                 }
             }
 

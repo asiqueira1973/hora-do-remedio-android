@@ -54,11 +54,7 @@ Android nativo, local-first, 100% offline, **grátis, sem compra dentro do app**
 
 ## B. Categoria e detalhes de contato (App category / contact details)
 
-- **App category:** ⚠️ **decidir** — `Medical` ou `Health & Fitness` (mesma pergunta aberta 25.5 do
-  `spec.md` do iOS; se você já escolheu uma categoria lá na App Store, usar a mesma aqui por
-  consistência de marca. `Medical` tem revisão mais rigorosa, mas é semanticamente mais correta para
-  um lembrete de remédio; `Health & Fitness` é mais leve. Recomendo `Medical` com o disclaimer da
-  seção C abaixo, que reduz o risco de rejeição.)
+- **App category:** `Health & Fitness` ✅ (decidido pelo Alexandre)
 - **Email:** `alexandre@dablab.com.br`
 - **Website:** `https://suportedablab.carrd.co/`
 - **Telefone:** opcional (pode deixar em branco)
@@ -107,8 +103,8 @@ Android nativo, local-first, 100% offline, **grátis, sem compra dentro do app**
 - **Ads:** **"No, my app does not contain ads."**
 - **Content rating (questionário IARC):**
   - Email: `alexandre@dablab.com.br`
-  - Categoria do app no questionário: **Medical** (se escolher essa categoria em B) ou
-    **Utility/Reference/Other** (se escolher Health & Fitness) — NÃO é jogo.
+  - Categoria do app no questionário: **Utility/Reference/Other** (compatível com `Health &
+    Fitness`) — NÃO é jogo.
   - Todas as perguntas de conteúdo: **Não** (sem violência, sexo, linguagem imprópria, drogas,
     jogos de azar, conteúdo assustador, UGC compartilhado, etc.). Resultado esperado: **Livre /
     Everyone**.
@@ -128,8 +124,8 @@ Android nativo, local-first, 100% offline, **grátis, sem compra dentro do app**
     tem "Apagar todos os meus dados" em Ajustes, além de desinstalar o app remover tudo.
 - **Government apps:** **No.**
 - **Financial features:** **No.**
-- **Health apps:** dependendo da categoria escolhida em B, o Play pode perguntar sobre app de
-  saúde — responder que é um **lembrete pessoal**, não um app que dá diagnóstico, tratamento ou
+- **Health apps:** o Play pode perguntar sobre app de saúde mesmo em `Health & Fitness` —
+  responder que é um **lembrete pessoal**, não um app que dá diagnóstico, tratamento ou
   aconselhamento médico (mesmo disclaimer recomendado no "Sobre o app" da App Store, seção 20.6 do
   spec.md do iOS: *"Este app é um lembrete pessoal. Ele não substitui a orientação do seu
   médico."* — vale considerar adicionar essa frase também na tela "Sobre o app" do Android, hoje
@@ -164,12 +160,10 @@ See Life. Pular a seção "Monetize with Play" inteira.
 
 ## Pendências suas
 
-1. **Categoria** (`Medical` vs `Health & Fitness`, seção B) — mesma decisão pendente 25.5 do spec
-   do iOS; se já escolheu lá, usar a mesma aqui.
-2. **Revisar a política de privacidade no Notion** — adicionar o parágrafo Android da seção C, ou
+1. **Revisar a política de privacidade no Notion** — adicionar o parágrafo Android da seção C, ou
    confirmar que a versão atual já serve sem menções a "iPhone"/"iOS".
-3. **Countries/regions:** disponibilidade — sugiro todos os países (ou só Brasil, se preferir).
-4. Considerar adicionar o disclaimer médico ("Este app é um lembrete pessoal...") na tela "Sobre o
-   app" do Android (hoje só tem o texto de privacidade) — reduz risco de questionamento na
-   categoria Medical. Aviso, não bloqueante: não fiz essa mudança de código sem sua confirmação,
-   por ser texto que aparece pro usuário final.
+2. **Countries/regions:** disponibilidade — sugiro todos os países (ou só Brasil, se preferir).
+3. Considerar adicionar o disclaimer médico ("Este app é um lembrete pessoal...") na tela "Sobre o
+   app" do Android (hoje só tem o texto de privacidade) — reduz risco de questionamento na seção
+   "Health apps" das declarações. Aviso, não bloqueante: não fiz essa mudança de código sem sua
+   confirmação, por ser texto que aparece pro usuário final.

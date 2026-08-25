@@ -1,0 +1,8 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 1284, "h": 2778 },
+    { "file": "Cadastro.dc.html", "x": 1420, "y": 0, "w": 1284, "h": 2778 },
+    { "file": "Ajustes.dc.html", "x": 2840, "y": 0, "w": 1284, "h": 2778 }
+  ],
+  "launch": { "view": "canvas" }
+}

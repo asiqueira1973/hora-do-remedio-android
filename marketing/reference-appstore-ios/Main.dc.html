@@ -1,0 +1,143 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  :root{
+    --acao:#007AFF;--perigo:#FF3B30;--atencao:#FF9500;
+    --neutro-texto:#1C1C1E;--neutro-texto-sec:#6E6E73;--neutro-fundo:#F2F2F7;
+    --neutro-superficie:#FFFFFF;--neutro-borda:#E5E5EA;--chevron:#C7C7CC;
+    --coral-fundo:#FFD9D0;--coral-detalhe:#E8654A;
+    --azul-fundo:#CFE4FF;--azul-detalhe:#2F7FE0;
+    --verde-fundo:#CFF0D8;--verde-detalhe:#2FA35C;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  a{color:var(--acao);} a:hover{color:var(--acao);}
+  .panel{
+    width:1284px;height:2778px;position:relative;overflow:hidden;
+    background:var(--neutro-fundo);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",system-ui,sans-serif;
+  }
+  .hero{padding:172px 90px 0;text-align:center;}
+  .headline{font-size:92px;font-weight:800;line-height:1.08;letter-spacing:-1px;margin:0;color:var(--neutro-texto);}
+  .subtitle{font-size:40px;font-weight:600;line-height:1.35;margin:26px 0 0;color:var(--neutro-texto-sec);}
+
+  .phone-wrap{position:absolute;left:50%;top:648px;transform:translateX(-50%);width:1006px;height:2260px;}
+  .bezel{width:100%;height:100%;background:#111214;border-radius:96px;padding:24px;box-shadow:0 40px 90px rgba(0,0,0,0.35);}
+  .screen{width:100%;height:100%;background:var(--neutro-fundo);border-radius:76px;overflow:hidden;position:relative;}
+
+  .statusbar{height:96px;display:flex;align-items:center;justify-content:space-between;padding:0 56px;font-size:32px;font-weight:600;color:var(--neutro-texto);}
+  .statusbar svg{display:block;}
+
+  .app-header{padding:20px 48px 0;}
+  .row-between{display:flex;align-items:center;justify-content:space-between;}
+  .greeting{font-size:82px;font-weight:800;color:var(--neutro-texto);}
+  .icon-btn{width:70px;height:70px;display:flex;align-items:center;justify-content:center;color:var(--neutro-texto);}
+  .share-row{display:flex;align-items:center;gap:16px;color:var(--acao);font-size:38px;font-weight:600;margin-top:24px;}
+
+  .section-header{padding:0 48px;margin-top:48px;margin-bottom:24px;font-size:44px;font-weight:600;color:var(--neutro-texto-sec);letter-spacing:0.5px;}
+
+  .card{margin:0 48px;background:var(--neutro-superficie);border-radius:34px;padding:34px;display:flex;align-items:center;gap:34px;}
+  .card + .card{margin-top:36px;}
+  .card-icon{width:115px;height:115px;border-radius:58px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .card-body{flex:1;min-width:0;}
+  .card-title{font-size:63px;font-weight:700;color:var(--neutro-texto);}
+  .card-sub{font-size:49px;font-weight:600;color:var(--neutro-texto-sec);margin-top:6px;}
+
+  .cta-bar{position:absolute;left:48px;right:48px;bottom:56px;height:163px;background:var(--acao);border-radius:34px;
+    display:flex;align-items:center;justify-content:center;color:#fff;font-size:53px;font-weight:700;
+    box-shadow:0 16px 40px rgba(0,122,255,0.35);}
+</style>
+</helmet>
+
+<div class="panel">
+  <div class="hero">
+    <p class="headline">Seus remédios,<br>na hora certa</p>
+    <p class="subtitle">Cadastre o que você toma e o app avisa na hora.</p>
+  </div>
+
+  <div class="phone-wrap">
+    <div class="bezel">
+      <div class="screen">
+        <div class="statusbar">
+          <span>9:41</span>
+          <svg width="52" height="26" viewBox="0 0 52 26" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="1.5" y="1.5" width="41" height="23" rx="6"></rect>
+            <rect x="5" y="5" width="34" height="16" rx="3" fill="currentColor" stroke="none"></rect>
+            <line x1="46" y1="9" x2="46" y2="17"></line>
+          </svg>
+        </div>
+
+        <div class="app-header">
+          <div class="row-between">
+            <span class="greeting">Boa tarde</span>
+            <span class="icon-btn">
+              <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+              </svg>
+            </span>
+          </div>
+          <div class="share-row">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle>
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+            </svg>
+            <span>Compartilhar minha lista</span>
+          </div>
+        </div>
+
+        <div class="section-header">MANHÃ — 08:00</div>
+        <div class="card">
+          <div class="card-icon" style="background:var(--coral-fundo);color:var(--coral-detalhe)">
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle></svg>
+          </div>
+          <div class="card-body">
+            <div class="card-title">Losartana</div>
+            <div class="card-sub">50mg</div>
+          </div>
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--chevron)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+        <div class="card">
+          <div class="card-icon" style="background:var(--azul-fundo);color:var(--azul-detalhe)">
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle></svg>
+          </div>
+          <div class="card-body">
+            <div class="card-title">Metformina</div>
+            <div class="card-sub">850mg</div>
+          </div>
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--chevron)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+
+        <div class="section-header" style="margin-top:56px">NOITE — 20:00</div>
+        <div class="card">
+          <div class="card-icon" style="background:var(--verde-fundo);color:var(--verde-detalhe)">
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle></svg>
+          </div>
+          <div class="card-body">
+            <div class="card-title">Sinvastatina</div>
+            <div class="card-sub">20mg</div>
+          </div>
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--chevron)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+
+        <div class="cta-bar">+ Adicionar remédio</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script data-dc-script data-props='{}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</x-dc>
+</body>
+</html>

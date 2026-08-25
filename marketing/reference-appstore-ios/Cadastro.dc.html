@@ -1,0 +1,116 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  :root{
+    --acao:#007AFF;--neutro-texto:#1C1C1E;--neutro-texto-sec:#6E6E73;--neutro-fundo:#F2F2F7;
+    --neutro-superficie:#FFFFFF;--neutro-borda:#E5E5EA;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  a{color:#fff;} a:hover{color:#fff;}
+  .panel{
+    width:1284px;height:2778px;position:relative;overflow:hidden;
+    background:var(--acao);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",system-ui,sans-serif;
+  }
+  .hero{padding:172px 90px 0;text-align:center;}
+  .headline{font-size:92px;font-weight:800;line-height:1.08;letter-spacing:-1px;margin:0;color:#fff;}
+  .subtitle{font-size:40px;font-weight:600;line-height:1.35;margin:26px 0 0;color:rgba(255,255,255,0.86);}
+
+  .phone-wrap{position:absolute;left:50%;top:648px;transform:translateX(-50%);width:1006px;height:2260px;}
+  .bezel{width:100%;height:100%;background:#111214;border-radius:96px;padding:24px;box-shadow:0 40px 90px rgba(0,0,0,0.4);}
+  .screen{width:100%;height:100%;background:var(--neutro-fundo);border-radius:76px;overflow:hidden;position:relative;}
+
+  .statusbar{height:96px;display:flex;align-items:center;justify-content:space-between;padding:0 56px;font-size:32px;font-weight:600;color:var(--neutro-texto);}
+
+  .form-top{padding:20px 48px 0;}
+  .cancel-link{color:var(--acao);font-size:49px;font-weight:600;}
+
+  .bloco{padding:0 48px;margin-top:52px;}
+  .bloco-title{font-size:45px;font-weight:600;color:var(--neutro-texto-sec);margin-bottom:22px;}
+
+  .field{min-height:134px;border-radius:34px;background:var(--neutro-superficie);display:flex;align-items:center;padding:0 38px;}
+  .field span{font-size:53px;font-weight:600;color:var(--neutro-texto);}
+
+  .group{background:var(--neutro-superficie);border-radius:34px;overflow:hidden;}
+  .option-row{min-height:134px;display:flex;align-items:center;gap:28px;padding:0 38px;}
+  .option-row.bordered{border-top:2px solid var(--neutro-borda);}
+  .option-label{flex:1;font-size:53px;font-weight:600;color:var(--neutro-texto);}
+  .check-filled{width:62px;height:62px;border-radius:31px;background:var(--acao);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .check-empty{width:62px;height:62px;border-radius:31px;border:5px solid var(--neutro-borda);flex-shrink:0;}
+
+  .bloco-peek{opacity:0.45;}
+</style>
+</helmet>
+
+<div class="panel">
+  <div class="hero">
+    <p class="headline">Nome, dose<br>e horário</p>
+    <p class="subtitle">Cadastre em menos de um minuto, sozinho.</p>
+  </div>
+
+  <div class="phone-wrap">
+    <div class="bezel">
+      <div class="screen">
+        <div class="statusbar">
+          <span>9:41</span>
+          <svg width="52" height="26" viewBox="0 0 52 26" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="1.5" y="1.5" width="41" height="23" rx="6"></rect>
+            <rect x="5" y="5" width="34" height="16" rx="3" fill="currentColor" stroke="none"></rect>
+            <line x1="46" y1="9" x2="46" y2="17"></line>
+          </svg>
+        </div>
+
+        <div class="form-top"><span class="cancel-link">Cancelar</span></div>
+
+        <div class="bloco">
+          <div class="bloco-title">Qual o nome do remédio?</div>
+          <div class="field"><span>Losartana</span></div>
+        </div>
+
+        <div class="bloco">
+          <div class="bloco-title">Qual a dose?</div>
+          <div class="field"><span>50mg</span></div>
+        </div>
+
+        <div class="bloco">
+          <div class="bloco-title">Como você toma?</div>
+          <div class="group">
+            <div class="option-row">
+              <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="var(--acao)" stroke-width="2"><circle cx="12" cy="12" r="9"></circle></svg>
+              <span class="option-label">Comprimido</span>
+              <div class="check-filled">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </div>
+            </div>
+            <div class="option-row bordered">
+              <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="var(--acao)" stroke-width="2"><rect x="4" y="9" width="16" height="6" rx="3"></rect><line x1="12" y1="9" x2="12" y2="15"></line></svg>
+              <span class="option-label">Cápsula</span>
+              <div class="check-empty"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bloco bloco-peek">
+          <div class="bloco-title">Com que frequência?</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script data-dc-script data-props='{}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</x-dc>
+</body>
+</html>

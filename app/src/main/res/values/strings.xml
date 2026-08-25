@@ -52,6 +52,9 @@
     <string name="cadastro_sair_sem_salvar_texto">O que você preencheu será perdido.</string>
     <string name="cadastro_sair_sem_salvar_continuar">Continuar editando</string>
     <string name="cadastro_sair_sem_salvar_confirmar">Sair sem salvar</string>
+    <string name="cadastro_confirmar_quando_precisar_texto">Esse remédio vai sair dos horários e os avisos vão parar. Continuar?</string>
+    <string name="cadastro_confirmar_quando_precisar_confirmar">Continuar</string>
+    <string name="cadastro_confirmar_quando_precisar_cancelar">Cancelar</string>
 
     <!-- detalhe -->
     <string name="detalhe_editar">Editar</string>

@@ -82,6 +82,7 @@ fun CadastroScreen(viewModel: CadastroViewModel, aoSalvar: (id: Long, precisaPer
     val context = LocalContext.current
     if (!viewModel.carregado) return // edição: espera carregar o remédio antes de desenhar o formulário
     var confirmandoSaida by remember { mutableStateOf(false) }
+    var confirmandoQuandoPrecisar by remember { mutableStateOf(false) }
     var mostrandoTimePicker by remember { mutableStateOf(false) }
     var mensagemHorario by remember { mutableStateOf<String?>(null) }
 
@@ -147,7 +148,16 @@ fun CadastroScreen(viewModel: CadastroViewModel, aoSalvar: (id: Long, precisaPer
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         OpcaoLinha(viewModel.frequencia == "diario", "Todo dia", escala) { viewModel.selecionarFrequencia("diario") }
                         OpcaoLinha(viewModel.frequencia == "dias_semana", "Alguns dias da semana", escala) { viewModel.selecionarFrequencia("dias_semana") }
-                        OpcaoLinha(viewModel.frequencia == "quando_precisar", stringResource(R.string.home_quando_precisar), escala) { viewModel.selecionarFrequencia("quando_precisar") }
+                        OpcaoLinha(viewModel.frequencia == "quando_precisar", stringResource(R.string.home_quando_precisar), escala) {
+                            // spec-ios.md 8.3 "Regras de edição": trocar pra quando_precisar na EDIÇÃO apaga
+                            // horários e desliga o lembrete — pede confirmação antes. No cadastro novo não há
+                            // nada a perder ainda, então troca direto.
+                            if (viewModel.ehEdicao && viewModel.frequencia != "quando_precisar") {
+                                confirmandoQuandoPrecisar = true
+                            } else {
+                                viewModel.selecionarFrequencia("quando_precisar")
+                            }
+                        }
                     }
                 }
 
@@ -294,6 +304,22 @@ fun CadastroScreen(viewModel: CadastroViewModel, aoSalvar: (id: Long, precisaPer
             },
         )
     }
+
+    if (confirmandoQuandoPrecisar) {
+        AlertDialog(
+            onDismissRequest = { confirmandoQuandoPrecisar = false },
+            text = { Text(stringResource(R.string.cadastro_confirmar_quando_precisar_texto)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.selecionarFrequencia("quando_precisar")
+                    confirmandoQuandoPrecisar = false
+                }) { Text(stringResource(R.string.cadastro_confirmar_quando_precisar_confirmar)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmandoQuandoPrecisar = false }) { Text(stringResource(R.string.cadastro_confirmar_quando_precisar_cancelar)) }
+            },
+        )
+    }
 }
 
 @Composable
@@ -363,4 +389,4 @@ private fun DiaSemanaCirculo(letra: String, selecionado: Boolean, aoTocar: () ->
 }
 
 // Toque mínimo de 60pt (spec-ios.md 8.2, critério de aceite).
-private fun Modifier.heightMinimo(): Modifier = this.height(60.dp)
+private fun Modifier.heightMinimo(): Modifier = this.heightIn(min = 60.dp)

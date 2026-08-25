@@ -25,7 +25,8 @@ mais nada lá sem necessidade equivalente.
 export JAVA_HOME=/opt/homebrew/opt/openjdk@21           # JDK 21 (AGP não aceita o JDK 25 do sistema)
 export ANDROID_HOME=/opt/homebrew/share/android-commandlinetools
 ./gradlew :app:assembleDebug        # compila o APK debug
-./gradlew test                      # testes unitários JVM (ainda não escritos — ver "Falta")
+./gradlew test                      # testes unitários JVM (20 testes — exportação, agrupamento, custo de agendamento)
+./gradlew connectedDebugAndroidTest # testes instrumentados (9 testes — CHECK/FK/UNIQUE/trigger do banco, precisa de emulador/device rodando)
 ./gradlew lint                      # lint Android
 ```
 
@@ -180,22 +181,25 @@ forma sem acento, mensagem de horário repetido mostrando a chave crua, `StateFl
 nunca coletada travando a exportação em lista vazia, cabeçalho da Home sob a status bar, botão de
 "Apagar tudo" cortando texto em 2 linhas na escala gigante.
 
+**Feito depois do fluxo de permissão (mesma sessão):** confirmação ao mudar frequência pra
+"quando_precisar" durante a EDIÇÃO (spec-ios.md 8.3, "Regras de edição" — string exata "Esse
+remédio vai sair dos horários e os avisos vão parar. Continuar?", verificada no emulador: Cancelar
+mantém o formulário, Continuar colapsa horários/lembrete e salva sem crash); ícone próprio da
+notificação (`ic_notificacao.xml`, sino monocromático, trocou o placeholder de sistema em
+`NotificationHelper`); grep final por `.height()` fixo fora de Spacers (achou 1 em `CadastroScreen`
+— campos de texto e a linha de frequência usavam `heightMinimo()` fixo, virou `heightIn(min=)`);
+testes instrumentados do Room (`AppDatabaseConstraintsTest`, 9 testes, exercitam CHECK/FK/UNIQUE/
+trigger que só o SQLite real valida — Room não olha isso na validação de schema).
+
 **Falta:**
 1. Observar o disparo real da notificação em device físico (maior item pendente — só dá pra testar
    fora do emulador).
-2. Confirmação própria ao mudar frequência para "quando_precisar" durante a EDIÇÃO (spec-ios.md
-   8.3, "Regras de edição" — não é critério de aceite obrigatório, mas está no spec).
-3. Testes instrumentados para Room (constraints/triggers via SQL bruto — nenhum ainda).
-4. Ícone de notificação próprio (hoje usa um ícone de sistema placeholder em `NotificationHelper`
-   — falta um ícone monocromático adequado para a barra de status).
-5. Revisar se algum outro botão/rótulo do app ainda usa `.height()` fixo em vez de `.heightIn(min=)`
-   (ver "Pegadinhas" #10 — já corrigido nos botões principais, mas vale um grep final).
-6. Telas de marketing da Play Store — tem uma referência visual pronta em
+2. Telas de marketing da Play Store — tem uma referência visual pronta em
    `marketing/reference-appstore-ios/` (as 3 telas do iOS, mesmo conteúdo) esperando pra virar a
    versão Android (Material 3, tamanho que o Google exige — ver o README daquela pasta).
-7. `DOCUMENTACAO-TECNICA.md` e `README.md` (entregáveis de fim, agora que o app está navegável de
+3. `DOCUMENTACAO-TECNICA.md` e `README.md` (entregáveis de fim, agora que o app está navegável de
    ponta a ponta).
-7. Play Console (assinatura release, ficha da loja, produto/testador) — fica pro "meio"; o app já
+4. Play Console (assinatura release, ficha da loja, produto/testador) — fica pro "meio"; o app já
    está navegável, então este é o próximo marco natural quando o Alexandre decidir seguir.
 
 **Pendências para o Alexandre decidir** (não são técnicas — feedback_decisoes_tecnicas):

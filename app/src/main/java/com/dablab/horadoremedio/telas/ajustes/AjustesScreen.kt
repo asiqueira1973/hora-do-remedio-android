@@ -109,21 +109,25 @@ fun AjustesScreen(
                 LinhaAjuste(stringResource(R.string.home_botao_compartilhar), escala) {
                     viewModel.textoParaCompartilhar { texto -> compartilharTexto(context, texto) }
                 }
-                LinhaAjuste(stringResource(R.string.ajustes_sobre), escala) {}
             }
 
-            // Sobre o app (conteúdo direto — sem sub-tela, spec-ios.md 8.6)
-            Column(
-                Modifier.fillMaxWidth().background(Cores.neutroSuperficie, RoundedCornerShape(14.dp)).padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Text(stringResource(R.string.ajustes_privacidade), style = estiloTipografico(TokenTipografico.CORPO, escala), color = Cores.neutroTextoSecundario)
-                Text(
-                    stringResource(R.string.sobre_politica_privacidade),
-                    style = estiloTipografico(TokenTipografico.CORPO, escala),
-                    color = Cores.acao,
-                    modifier = Modifier.clickable { uriHandler.openUri(context.getString(R.string.sobre_url_politica_privacidade)) },
-                )
+            // Sobre o app (conteúdo direto — sem sub-tela nem toque, spec-ios.md 8.6. Era uma
+            // LinhaAjuste clicável com onClick vazio — parecia um item de navegação que não fazia
+            // nada; virou um cabeçalho de seção como "Tamanho das letras" acima).
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(stringResource(R.string.ajustes_sobre), style = estiloTipografico(TokenTipografico.APOIO, escala), color = Cores.neutroTextoSecundario)
+                Column(
+                    Modifier.fillMaxWidth().background(Cores.neutroSuperficie, RoundedCornerShape(14.dp)).padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(stringResource(R.string.ajustes_privacidade), style = estiloTipografico(TokenTipografico.CORPO, escala), color = Cores.neutroTextoSecundario)
+                    Text(
+                        stringResource(R.string.sobre_politica_privacidade),
+                        style = estiloTipografico(TokenTipografico.CORPO, escala),
+                        color = Cores.acao,
+                        modifier = Modifier.clickable { uriHandler.openUri(context.getString(R.string.sobre_url_politica_privacidade)) },
+                    )
+                }
             }
 
             // Apagar todos os meus dados

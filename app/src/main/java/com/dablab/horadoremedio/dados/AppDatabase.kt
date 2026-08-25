@@ -43,26 +43,37 @@ abstract class AppDatabase : RoomDatabase() {
                     "hora_do_remedio.db",
                 )
                     .setJournalMode(JournalMode.WRITE_AHEAD_LOGGING) // spec-ios.md 7.7
-                    .addCallback(object : Callback() {
-                        override fun onCreate(db: SupportSQLiteDatabase) {
-                            super.onCreate(db)
-                            recriarComConstraints(db)
-                        }
-
-                        override fun onOpen(db: SupportSQLiteDatabase) {
-                            super.onOpen(db)
-                            db.execSQL("PRAGMA foreign_keys = ON") // spec-ios.md 7.7, por conexão
-                            // O SQLite empacotado no Android (diferente do iOS) liga
-                            // recursive_triggers por padrão — sem isto, o UPDATE que o próprio
-                            // trigger de atualizado_em faz dispara o trigger de novo, e de novo,
-                            // até "too many levels of trigger recursion" (crash real, visto no
-                            // emulador ao concluir o onboarding).
-                            db.execSQL("PRAGMA recursive_triggers = OFF")
-                        }
-                    })
+                    .addCallback(CALLBACK_CONSTRAINTS)
                     .build()
                     .also { instancia = it }
             }
+
+        /**
+         * Banco em memória com as mesmas CHECK/FK/trigger de `obter()` — usado pelos testes
+         * instrumentados (androidTest) pra exercitar constraints que só o SQLite real valida
+         * (Room's schema validation não olha CHECK/trigger, só nome/tipo/notNull/PK de coluna).
+         */
+        fun construirEmMemoriaParaTeste(context: Context): AppDatabase =
+            Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
+                .addCallback(CALLBACK_CONSTRAINTS)
+                .build()
+
+        private val CALLBACK_CONSTRAINTS = object : Callback() {
+            override fun onCreate(db: SupportSQLiteDatabase) {
+                super.onCreate(db)
+                recriarComConstraints(db)
+            }
+
+            override fun onOpen(db: SupportSQLiteDatabase) {
+                super.onOpen(db)
+                db.execSQL("PRAGMA foreign_keys = ON") // spec-ios.md 7.7, por conexão
+                // O SQLite empacotado no Android (diferente do iOS) liga recursive_triggers por
+                // padrão — sem isto, o UPDATE que o próprio trigger de atualizado_em faz dispara
+                // o trigger de novo, e de novo, até "too many levels of trigger recursion" (crash
+                // real, visto no emulador ao concluir o onboarding).
+                db.execSQL("PRAGMA recursive_triggers = OFF")
+            }
+        }
 
         private fun recriarComConstraints(db: SupportSQLiteDatabase) {
             db.execSQL("DROP TABLE IF EXISTS remedios")
@@ -89,6 +100,12 @@ abstract class AppDatabase : RoomDatabase() {
                         ('diario','dias_semana','intervalo_dias','quando_precisar')),
                     CONSTRAINT ck_remedios_cor CHECK (cor IN
                         ('coral','azul','verde','amarelo','lilas','pessego')),
+                    -- Pegadinha do SQLite: se a coluna condicional (intervalo_dias/dias_semana) for
+                    -- NULL mas a frequência exigir ela preenchida, o primeiro ramo vira NULL (não
+                    -- FALSE) e "NULL OR FALSE" ainda é NULL — CHECK só rejeita em FALSE explícito,
+                    -- então essa linha passaria. Nunca acontece pelo app (CadastroViewModel valida
+                    -- ambos os campos antes de salvar), mas um INSERT bruto de fora do app driblaria
+                    -- esse CHECK — ver AppDatabaseConstraintsTest.
                     CONSTRAINT ck_remedios_intervalo_coerente CHECK (
                         (frequencia = 'intervalo_dias' AND intervalo_dias BETWEEN 2 AND 30)
                         OR (frequencia <> 'intervalo_dias' AND intervalo_dias IS NULL)

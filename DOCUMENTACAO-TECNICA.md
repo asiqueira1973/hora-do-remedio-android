@@ -97,7 +97,8 @@ idêntica dos dois lados, o comportamento também seria o mesmo no iOS — só n
 | 7 | Ajustes | `ajustes` | `preferencias`, `remedios` (para compartilhar) | `preferencias` | `telas/ajustes/AjustesScreen.kt`, `AjustesViewModel.kt` |
 | 8 | Remédios que parei | `ajustes/arquivados` | `remedios` (`arquivado_em IS NOT NULL`) | `remedios` (limpa `arquivado_em`), `notificacoes_agendadas` (via reagendamento) | `telas/arquivados/ArquivadosScreen.kt`, `ArquivadosViewModel.kt` |
 
-Sem tela dedicada de "Sobre o app" nem "Erro de banco" separadas do iOS ainda — ver 19.6.
+"Sobre o app" (política de privacidade) é conteúdo inline dentro de Ajustes, não uma sub-tela — ver
+19.5. Sem tela de "Erro de banco" separada do iOS ainda — ver 19.6.
 
 ---
 
@@ -219,6 +220,13 @@ React Native, sem escrever nenhum arquivo temporário.
   `preferencias.resetarParaDefaults()` — sem onboarding concluído). `RootView` navega de volta para
   `onboarding` explicitamente na callback (`aoApagarTudo`), diferente do portão reativo do iOS — ver
   19.6.
+- **"Sobre o app"**: não é uma sub-tela nem um item de navegação — o texto de privacidade
+  (`ajustes_privacidade`) e o link da política (`sobre_url_politica_privacidade`, aberto via
+  `LocalUriHandler`) ficam sempre visíveis dentro do próprio Ajustes, sob um cabeçalho de seção. Até
+  esta sessão era uma `LinhaAjuste` clicável com `onClick = {}` — parecia navegável (mesmo visual das
+  linhas que agem de verdade, "Remédios que parei"/"Compartilhar minha lista") mas não fazia nada;
+  corrigido para um cabeçalho de seção simples, já que o conteúdo não precisa de toque nenhum
+  (achado ao gerar screenshots de marketing para a Play Store).
 
 ### Onboarding
 
@@ -268,14 +276,13 @@ perfeitamente síncronas lá. No Android, `RootView` já decide a `startDestinat
 de "preso no onboarding" que motivou o portão reativo do iOS — se aparecer, é o primeiro lugar a
 olhar.
 
-### Sem tela "Sobre o app" e sem tela de erro de banco dedicada
+### Sem tela de erro de banco dedicada
 
-O `spec-ios.md` 8.6 lista "Sobre o app" (versão, política de privacidade) como parte de Ajustes, e
-`spec.md` 12.4 pede uma tela de erro se a migration do banco falhar — nenhuma das duas foi
-implementada ainda neste port. Não são cortes deliberados de escopo, são pendências de
-implementação: `AjustesScreen.kt` não tem a linha "Sobre o app" e `RootView` não trata falha de
-`prepararNaAbertura()` (que hoje não pode falhar de forma realista, já que não há migration real —
-ver 19.3 — mas passará a poder no dia em que uma existir).
+`spec.md` 12.4 pede uma tela de erro se a migration do banco falhar — não implementada ainda neste
+port. Não é um corte deliberado de escopo, é uma pendência de implementação: `RootView` não trata
+falha de `prepararNaAbertura()` (que hoje não pode falhar de forma realista, já que não há migration
+real — ver 19.3 — mas passará a poder no dia em que uma existir). ("Sobre o app" da 8.6 **existe**,
+como conteúdo inline em Ajustes — ver 19.5.)
 
 ### `expo-sharing`/`Share` viram `Intent.ACTION_SEND` (equivalente direto, sem ganho ou perda)
 

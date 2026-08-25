@@ -194,14 +194,22 @@ trigger que só o SQLite real valida — Room não olha isso na validação de s
 seção 19 do spec.md — atualizar os dois no mesmo commit de qualquer mudança de schema/trigger/lógica
 de tela).
 
+**Play Store — SUBMETIDO À REVISÃO** (2026-08-24): keystore de upload gerado
+(`~/keys/horadoremedio-upload.jks`), AAB assinado (`versionCode 1`/`versionName 1.0.0`), ícone
+512×512 + feature graphic 1024×500 gerados a partir do ícone real do app, 3 screenshots reais
+capturadas do app rodando no emulador (Home/Detalhe/Ajustes — não mockup), ficha da loja completa
+em `play-store-connect-hora-do-remedio.md` (categoria **Health & Fitness**, decisão do Alexandre;
+sem produto in-app — app grátis). Achado no processo: a linha "Sobre o app" em Ajustes tinha
+`onClick` vazio (clique morto) — corrigido, virou cabeçalho de seção. Alexandre preencheu o Play
+Console manualmente (SPA trava automação de navegador) e confirmou "enviando para revisão".
+
 **Falta:**
 1. Observar o disparo real da notificação em device físico (maior item pendente — só dá pra testar
    fora do emulador).
-2. Telas de marketing da Play Store — tem uma referência visual pronta em
-   `marketing/reference-appstore-ios/` (as 3 telas do iOS, mesmo conteúdo) esperando pra virar a
-   versão Android (Material 3, tamanho que o Google exige — ver o README daquela pasta).
-3. Play Console (assinatura release, ficha da loja, produto/testador) — fica pro "meio"; o app já
-   está navegável, então este é o próximo marco natural quando o Alexandre decidir seguir.
+2. Acompanhar o resultado da revisão do Google (chega por e-mail, de horas a alguns dias).
+3. Pendências que ficaram registradas em `play-store-connect-hora-do-remedio.md` (revisar a
+   política de privacidade no Notion com o parágrafo Android, considerar o disclaimer médico em
+   "Sobre o app") — não bloqueiam a revisão, mas valem revisão pós-aprovação.
 
 **Pendências para o Alexandre decidir** (não são técnicas — feedback_decisoes_tecnicas):
 nenhuma ainda. Tudo que foi decidido até aqui era técnico e ficou registrado no spec.md/neste

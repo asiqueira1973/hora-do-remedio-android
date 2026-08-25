@@ -49,7 +49,7 @@ object NotificationHelper {
         )
 
         val notificacao = NotificationCompat.Builder(context, canalId)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setSmallIcon(R.drawable.ic_notificacao)
             .setContentTitle(context.getString(R.string.notificacao_titulo))
             .setContentText(corpo)
             .setPriority(NotificationCompat.PRIORITY_HIGH)

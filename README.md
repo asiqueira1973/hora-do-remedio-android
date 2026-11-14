@@ -1,115 +1,110 @@
 # Hora do Remédio (Android)
 
-Lembrete de remédios para idosos: cadastra o remédio, a dose e o horário, e o app avisa na hora
-certa — sem conta, sem login, sem internet. Tudo fica guardado só no aparelho.
+Lembrete de remédios para idosos: cadastra o remédio, a dose e o horário, e o app avisa na hora certa, sem conta, sem login e sem internet.
 
-Port nativo Android (Kotlin + Jetpack Compose) do app iOS [`Hora do Remédio`](../hora-do-remedio),
-mesma proposta de produto, primitivas nativas de cada plataforma. Detalhes de arquitetura e as
-divergências entre as duas plataformas estão em [`DOCUMENTACAO-TECNICA.md`](DOCUMENTACAO-TECNICA.md).
+Este é o port nativo Android (Kotlin + Jetpack Compose) do app iOS [Hora do Remédio](https://github.com/asiqueira1973/hora-do-remedio), que está publicado na [App Store](https://apps.apple.com/br/app/ta-na-hora-do-rem%C3%A9dio/id6795346505). A proposta de produto e os textos são os mesmos; cada plataforma usa as suas primitivas nativas.
 
-## Stack
+<p>
+  <img src="play-assets/screenshots/horadoremedio-play-1-home.jpg" alt="Tela principal" width="240">
+  <img src="play-assets/screenshots/horadoremedio-play-2-detalhe.jpg" alt="Detalhe do remédio" width="240">
+  <img src="play-assets/screenshots/horadoremedio-play-3-ajustes.jpg" alt="Ajustes" width="240">
+</p>
 
-- Kotlin + Jetpack Compose (Material Design 3, sem dynamic color)
-- Room (SQLite) — schema com CHECK/FK/trigger nomeados, ver [`SCHEMA-ios.md`](SCHEMA-ios.md) para a
-  estrutura (idêntica dos dois lados) e [`DOCUMENTACAO-TECNICA.md` §19.3](DOCUMENTACAO-TECNICA.md)
-  para como ela chega ao SQLite no Android
-- `AlarmManager` + `BroadcastReceiver` para os lembretes (sem servidor, sem push — 100% local)
+## Principais funcionalidades
+
+- Cadastro de remédio com nome, dose, forma, frequência (todo dia, dias da semana ou quando precisar), horários, observação e cor.
+- Tela principal com os remédios ativos agrupados por horário.
+- Lembretes locais com `AlarmManager`, reagendados depois de reiniciar o aparelho.
+- Fluxo explicativo para pedir as permissões de notificação e de alarme exato.
+- Arquivar ("parar de tomar") com opção de desfazer, e voltar a tomar depois.
+- Exportação da lista como texto pelo compartilhamento do Android.
+- Ajustes de tamanho de letra (grande / gigante), som do aviso e apagar todos os dados.
+- 100% offline: os dados ficam só no aparelho, em SQLite.
+
+## Stack técnica
+
+- Kotlin, Jetpack Compose, Material Design 3 (cores fixas, sem dynamic color)
+- Room (SQLite), com CHECK, FK e triggers criados em SQL bruto
+- `AlarmManager` + `BroadcastReceiver` para os lembretes (sem servidor, sem push)
 - Navigation Compose (single-activity)
-- `minSdk 26`, `targetSdk 35`, `compileSdk 35`, phone-only, retrato apenas
+- JUnit (testes JVM) e AndroidX Test (testes instrumentados)
+- `minSdk 26`, `targetSdk 35`, só telefone, só retrato
 
-## Pré-requisitos
+## Como foi construído
 
-- JDK 21 — **não** o JDK mais novo do sistema; o Android Gradle Plugin não builda com JDK 25+.
-  Qualquer JDK 21 serve (Homebrew `openjdk@21`, o JBR que vem com o Android Studio, etc.).
-- Android SDK (command-line tools bastam — não precisa do Android Studio para compilar/rodar via
-  linha de comando). `local.properties` aponta `sdk.dir` para a instalação local — não versionado.
-- Um emulador ou device físico Android 8.0+ (API 26+) para rodar.
+O app foi desenvolvido com Claude (Anthropic) a partir de especificações no formato SDD. A [`spec.md`](spec.md) deste repositório é a spec do port: ela traduz para Android a spec do app iOS ([`spec-ios.md`](spec-ios.md)), mantendo o comportamento e mudando só a tecnologia. O sistema como foi implementado, com as divergências entre as plataformas, está em [`DOCUMENTACAO-TECNICA.md`](DOCUMENTACAO-TECNICA.md).
 
-## Setup
+O que existe no repositório para manter a qualidade:
+
+- [`CLAUDE.md`](CLAUDE.md) com o guia para o agente de código: comandos, arquitetura, convenções e as "pegadinhas" que não podem ser quebradas (bugs reais já encontrados e corrigidos).
+- Testes unitários JVM (`app/src/test/`) para as funções puras: cálculo de agendamento, agrupamento da tela principal e geração do texto exportado (comparação literal com o formato da spec).
+- Testes instrumentados (`app/src/androidTest/`) que validam CHECK, FK, UNIQUE e triggers no SQLite real, que o Room não verifica sozinho.
+
+## Status
+
+Em desenvolvimento. Segundo o `CLAUDE.md`, o app foi enviado para revisão na Google Play; ainda não há link público da loja.
+
+## Como rodar
+
+### Pré-requisitos
+
+- JDK 21 (o Android Gradle Plugin não builda com JDK 25+).
+- Android SDK (as command-line tools bastam). `local.properties` aponta `sdk.dir` para a instalação local e não é versionado; se não existir, crie com uma linha `sdk.dir=<caminho do Android SDK>`.
+- Um emulador ou aparelho Android 8.0+ (API 26+).
+
+### Build e execução
 
 ```bash
-export JAVA_HOME=/opt/homebrew/opt/openjdk@21     # ajuste pro seu JDK 21
-export ANDROID_HOME=/opt/homebrew/share/android-commandlinetools   # ajuste pro seu SDK
+export JAVA_HOME=<caminho do JDK 21>
+export ANDROID_HOME=<caminho do Android SDK>
 
 ./gradlew :app:assembleDebug
-```
-
-Se `local.properties` não existir, crie com uma linha `sdk.dir=<caminho do Android SDK>`.
-
-## Rodar
-
-Num emulador já criado (AVD), sem precisar abrir o Android Studio:
-
-```bash
-export ANDROID_SDK_ROOT=/opt/homebrew/share/android-commandlinetools
-export PATH="$ANDROID_SDK_ROOT/platform-tools:$ANDROID_SDK_ROOT/emulator:$PATH"
-
-emulator -avd <nome-do-avd> -no-snapshot -no-boot-anim &
-adb wait-for-device
 ./gradlew installDebug
 adb shell am start -n com.dablab.horadoremedio.debug/com.dablab.horadoremedio.MainActivity
 ```
 
-Criar um AVD novo, se precisar: `avdmanager create avd -n Pixel_10 -k "system-image;android-35;google_apis;arm64-v8a"`
-(ajuste a arquitetura da imagem pro seu Mac — `arm64-v8a` em Apple Silicon).
-
-Num device físico com depuração USB ligada, troque o passo do emulador por `adb devices` para
-confirmar que o aparelho aparece, e siga o resto igual.
-
-## Testes
+### Testes
 
 ```bash
-./gradlew test                        # testes unitários JVM — funções puras (agendamento, agrupamento da Home, exportação)
-./gradlew connectedDebugAndroidTest    # testes instrumentados — CHECK/FK/UNIQUE/trigger do banco real, precisa de emulador/device rodando
+./gradlew test                        # testes unitários JVM
+./gradlew connectedDebugAndroidTest   # testes instrumentados (precisa de emulador ou aparelho)
 ./gradlew lint                        # lint Android
 ```
 
-Os testes instrumentados (`app/src/androidTest/`) existem porque o Room só valida
-nome/tipo/`NOT NULL`/PK de coluna — CHECK, FK e trigger só o SQLite real aplica, então só rodam num
-dispositivo/emulador de verdade, nunca em JVM pura.
+### Build de release
 
-## Build de release
-
-Assinatura lê `keystore.properties` na raiz do repo (não versionado, mesmo formato do app irmão
-I See Life Android):
+A assinatura lê um `keystore.properties` na raiz do repositório (não versionado):
 
 ```properties
-storeFile=/caminho/para/horadoremedio-upload.jks
+storeFile=/caminho/para/upload.jks
 storePassword=...
-keyAlias=horadoremedio
+keyAlias=...
 keyPassword=...
 ```
 
-Sem esse arquivo, `./gradlew assembleRelease`/`bundleRelease` builda sem assinatura (útil em dev,
-não instalável/publicável como está).
+Sem esse arquivo, `./gradlew bundleRelease` gera um build sem assinatura (útil em desenvolvimento, não publicável).
 
-## Estrutura do projeto
+### Estrutura do projeto
 
 ```
 app/src/main/java/com/dablab/horadoremedio/
-├── dados/          # Room: entidades, DAOs, AppDatabase (schema em SQL bruto), Repositorio
-├── lembretes/       # AlarmManager: cálculo de agendamento (puro), AgendadorLembretes,
-│                     # NotificationHelper, LembreteReceiver, BootReceiver
-├── designsystem/     # Cores, tipografia, tema Material 3
-├── exportacao/       # Geração e compartilhamento da lista de remédios em texto
-└── telas/            # Uma pasta por tela (home, cadastro, detalhe, ajustes, arquivados,
-                       # permissao, onboarding), RootView.kt como roteador raiz
+├── dados/          # Room: entidades, DAOs, AppDatabase, Repositorio
+├── lembretes/      # AlarmManager: cálculo de agendamento, agendador, receivers, notificações
+├── designsystem/   # cores, tipografia, tema Material 3
+├── exportacao/     # geração e compartilhamento da lista em texto
+└── telas/          # uma pasta por tela; RootView.kt como roteador raiz
 ```
 
-## Documentos deste repositório
+`spec-ios.md`, `DOCUMENTACAO-TECNICA-ios.md` e `SCHEMA-ios.md` são cópias de referência do projeto iOS, só para consulta.
 
-- [`CLAUDE.md`](CLAUDE.md) — guia operacional para quem (ou o agente que) for dar manutenção:
-  comandos, decisões técnicas, bugs já encontrados e corrigidos, o que falta.
-- [`DOCUMENTACAO-TECNICA.md`](DOCUMENTACAO-TECNICA.md) — o sistema como foi implementado: modelo de
-  dados, lógica de cada tela, e as divergências em relação ao spec e ao port iOS.
-- [`spec.md`](spec.md) — especificação de produto, comum às duas plataformas.
-- `spec-ios.md`, `DOCUMENTACAO-TECNICA-ios.md`, `SCHEMA-ios.md` — cópias de referência do projeto
-  iOS irmão, só para consulta (nunca editadas aqui).
+## Licença
 
-## Estado atual
+O código está disponível apenas para leitura e estudo. Veja [LICENSE](LICENSE).
 
-App navegável de ponta a ponta (onboarding → cadastro → Home → detalhe → edição → arquivamento →
-ajustes), com o fluxo de permissão de notificação/alarme exato implementado e verificado no
-emulador. O que falta antes de publicar está listado em [`CLAUDE.md`](CLAUDE.md#falta) — o item mais
-importante é observar o disparo real da notificação num device físico (o emulador não é confiável
-para isso).
+## Contribuições
+
+Issues são bem-vindas; pull requests não são aceitos. Veja [CONTRIBUTING.md](CONTRIBUTING.md).
+
+---
+
+Feito pela [Dab Lab](https://www.dablab.com.br/) — agência de inovação no-code para startups e PMEs, com automações usando IA.
